@@ -62,6 +62,25 @@ flutter build linux
 ```
 *Output will be located at `build/linux/x64/release/bundle/`*
 
+## Documentation
+
+All architectural diagrams (Mermaid format) and detailed technical documentation should be placed in the `/docs` folder. See `/docs/ARCHITECTURE.md` for an example.
+
+## Seed Database
+
+For testing purposes, a Python script is included to generate a seed database populated with 5 sample habits (with randomized completions over the years) and 5 sample notes.
+
+1. Navigate to the seed database directory:
+   ```bash
+   cd seed_database
+   ```
+2. Run the script:
+   ```bash
+   python generate_seed.py
+   ```
+   This will generate a `seed_data.json` file in the same directory.
+3. Import the data into the app using the import feature on the Dashboard (or Settings) and select the `seed_data.json` file.
+
 # Architecture
 
 This document contains architectural diagrams and system explanations for the Smart Habit Tracker.
