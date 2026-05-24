@@ -1,0 +1,6 @@
+include: package:flutter_lints/flutter.yaml
+
+analyzer:
+  errors:
+    non_const_argument_for_const_parameter: ignore
+    deprecated_member_use: ignore

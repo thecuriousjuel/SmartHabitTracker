@@ -1,0 +1,45 @@
+Aim: I want to build a GitHub history style habit tracker using Flutter. The application should work in the Windows desktop.
+
+Technology: Flutter
+Platform: Windows
+
+Application Name: SmartHabitTracker – Track your habit with ease
+
+Requirement:
+    1. The app should greet the user when loading for the first time using a modal box.
+    2. If no habits are present, the user has to create at least one habit to move ahead to the home screen.
+    3. The user should be able to create one habit at a time.
+    4. While creating a habit, the application should ensure that no habits have the same name.
+    5. While creating a habit, the app will auto assign an icon associated with the habit. The application should have all the icons that are typically supported.
+    6. While creating a habit, the app will auto assign colour for the habit graph. The application should have all the material icons or a material colour picker.
+    7. The user can click on the auto assigned habit icon and can select his own icon of choice for the associated habit. 
+    8. The user can click on the auto assigned habit graph colour and can select his own colour of choice for the associated habit. By default it will contain 10 different colours. The user can also open the colour picker and select any colour of their choice for the habit graph.
+    9. The user should be able to add a small optional description for the habit (50 characters). 
+    10. The user also needs to mention the duration of the habit. 
+    11. Habits can be lifelong – selected by default or they can be of a certain number of days else the user has to select the start date and the end date. The start date will be the current date by default.
+    12. Once the user has entered all the details of the habit, the user will be taken to the homepage.
+    13. The homepage should contain all the habits that the user has added. 
+    14. The habits will be divided into 3 parts – Ongoing, Upcoming and Past.
+    15. The Ongoing habits will be show by default and the other habits will be toggled off.
+    16. If the user wants to preview Upcoming or Past habits they have to turn on the toggle.
+    17. For all the habits that are in progress or for which the end date is still in the future will be present in the Ongoing section.
+    18. For all the habits for which the start date is still in the future is Upcoming.
+    19. For all the habits for which the end date has passed are the Past habits.
+    20. One habit component/widget will contain the habit icon, habit name and below the 365 days GitHub history style graph. One button to mark the completion of the habit for that day.
+    21. Once the user marks it as completed – the graph should get updated with the assigned colour.
+    22. The application will have different views – By default it will contain the last 365 days view, it will have a monthly view and a weekly view.
+    23. For the monthly view, the app will show the current month days –  greyed out colour for inactive days and coloured view for active days.
+    24. For the weekly view, the app will show the current week days – greyed out colour for inactive days and coloured view for active days.
+    25. When the user clicks on the habit widget for a particular habit. The habit calendar should open up. The calendar would contain all the days for that current month, a toggle to move to the next and previous month. The calendar should show the days where the user has completed the habit and the days where the user did not. In this view, the user can switch months and click on any date and the colour will be enabled.
+    26. The application has to strictly follow material UI elements, colours, transparency effects, consistent theme style, a heavy visual effects for modern rich look.
+    27. The user can choose between 4 theme modes for the entire material UI
+        1. Dark mode with black/grey theme
+        2. Dark mode with blue/purple theme
+        3. Light mode with white theme
+        4. Light mode with a greenish theme
+    28. The application has to work on all windows desktop screens be it 720p, 1080p, 2k or 4k.
+    29. The application should be compatible on Windows 10 and Windows 11.
+    30. The application has to be responsive with its UI and widgets.
+    31. Make sure to perform proper unit and integration testing.
+    32. Perform sanity checks.
+    33. Suggest me a way in which you will store the Habit record in Windows OS.
