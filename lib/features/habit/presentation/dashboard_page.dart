@@ -1,10 +1,10 @@
 import 'dart:async';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/storage/backup/backup_helper.dart';
 import '../models/habit.dart';
 import '../provider/habits_provider.dart';
+import 'ambient_glow_wrapper.dart';
 import 'github_grid.dart';
 import 'habit_calendar_dialog.dart';
 import 'habit_creation_dialog.dart';
@@ -175,12 +175,7 @@ class _DashboardPageState extends State<DashboardPage> {
             if (ongoing.isEmpty)
               _buildEmptyState('No ongoing habits. Create one or toggle sections below!')
             else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: ongoing.length,
-                itemBuilder: (ctx, idx) => _buildHabitCard(context, ongoing[idx]),
-              ),
+              _buildHabitGrid(context, ongoing),
             const SizedBox(height: 24),
 
             // Upcoming Habits Section
@@ -193,12 +188,7 @@ class _DashboardPageState extends State<DashboardPage> {
             if (_showUpcoming)
               upcoming.isEmpty
                   ? _buildEmptyState('No upcoming habits scheduled.')
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: upcoming.length,
-                      itemBuilder: (ctx, idx) => _buildHabitCard(context, upcoming[idx]),
-                    ),
+                  : _buildHabitGrid(context, upcoming),
             const SizedBox(height: 24),
 
             // Past Habits Section
@@ -211,12 +201,7 @@ class _DashboardPageState extends State<DashboardPage> {
             if (_showPast)
               past.isEmpty
                   ? _buildEmptyState('No past habits completed/ended.')
-                  : ListView.builder(
-                      shrinkWrap: true,
-                      physics: const NeverScrollableScrollPhysics(),
-                      itemCount: past.length,
-                      itemBuilder: (ctx, idx) => _buildHabitCard(context, past[idx]),
-                    ),
+                  : _buildHabitGrid(context, past),
           ],
         ),
       ),
@@ -310,13 +295,13 @@ class _DashboardPageState extends State<DashboardPage> {
     final isDarkNeon = provider.themeMode == 4;
 
     Widget cardWidget = Card(
-      margin: isNeon ? EdgeInsets.zero : const EdgeInsets.symmetric(vertical: 8.0),
+      margin: isNeon ? EdgeInsets.zero : const EdgeInsets.symmetric(vertical: 6.0),
       child: InkWell(
         onTap: () => _openCalendar(context, habit),
         borderRadius: BorderRadius.circular(16),
         hoverColor: theme.colorScheme.primary.withValues(alpha: 0.03),
         child: Padding(
-          padding: const EdgeInsets.all(16.0),
+          padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 12.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -324,24 +309,27 @@ class _DashboardPageState extends State<DashboardPage> {
               Row(
                 children: [
                   Container(
-                    width: 44,
-                    height: 44,
+                    width: 36,
+                    height: 36,
                     decoration: BoxDecoration(
                       color: activeColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       getHabitIcon(habit.iconCodePoint),
                       color: activeColor,
+                      size: 20,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: 12),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           habit.name,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
                           style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                         ),
                         if (habit.description != null && habit.description!.isNotEmpty)
@@ -356,20 +344,26 @@ class _DashboardPageState extends State<DashboardPage> {
                       ],
                     ),
                   ),
+                  const SizedBox(width: 8),
                   // Completion Button
                   IconButton(
                     icon: Icon(
                       isDoneToday ? Icons.check_circle : Icons.check_circle_outline,
                       color: isDoneToday ? activeColor : theme.colorScheme.onSurfaceVariant,
-                      size: 28,
+                      size: 24,
                     ),
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                     onPressed: () {
                       provider.toggleCompletion(habit.id, DateTime.now());
                     },
                   ),
+                  const SizedBox(width: 8),
                   IconButton(
-                    icon: const Icon(Icons.edit_outlined, color: Colors.grey),
+                    icon: const Icon(Icons.edit_outlined, color: Colors.grey, size: 20),
                     tooltip: 'Edit Habit',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                     onPressed: () {
                       showDialog(
                         context: context,
@@ -377,14 +371,17 @@ class _DashboardPageState extends State<DashboardPage> {
                       );
                     },
                   ),
+                  const SizedBox(width: 8),
                   IconButton(
-                    icon: const Icon(Icons.delete_outline, color: Colors.grey),
+                    icon: const Icon(Icons.delete_outline, color: Colors.grey, size: 20),
                     tooltip: 'Delete Habit',
+                    padding: EdgeInsets.zero,
+                    constraints: const BoxConstraints(),
                     onPressed: () => _deleteHabit(context, habit),
                   )
                 ],
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 12),
               // GitHub Grid
               SizedBox(
                 width: double.infinity,
@@ -417,101 +414,50 @@ class _DashboardPageState extends State<DashboardPage> {
 
     return cardWidget;
   }
-}
 
-// ----------------------------------------------------
-// Custom Neon Ambient Glow Wrapper
-// ----------------------------------------------------
-class AmbientGlowWrapper extends StatefulWidget {
-  final Widget child;
-  final bool enabled;
-  final bool isDark;
+  Widget _buildHabitGrid(BuildContext context, List<Habit> habits) {
+    final screenWidth = MediaQuery.of(context).size.width;
+    final useTwoColumns = screenWidth > 1050;
 
-  const AmbientGlowWrapper({
-    super.key,
-    required this.child,
-    required this.enabled,
-    required this.isDark,
-  });
-
-  @override
-  State<AmbientGlowWrapper> createState() => _AmbientGlowWrapperState();
-}
-
-class _AmbientGlowWrapperState extends State<AmbientGlowWrapper>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 8),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    if (!widget.enabled) {
-      return widget.child;
+    if (!useTwoColumns) {
+      return ListView.builder(
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        itemCount: habits.length,
+        itemBuilder: (ctx, idx) => _buildHabitCard(context, habits[idx]),
+      );
     }
 
-    final colors = widget.isDark
-        ? [const Color(0xFF00FFFF), const Color(0xFFFF007F), const Color(0xFF00FFFF)]
-        : [const Color(0xFFE0007A), const Color(0xFFFF5E00), const Color(0xFFE0007A)];
+    final leftHabits = <Habit>[];
+    final rightHabits = <Habit>[];
+    for (int i = 0; i < habits.length; i++) {
+      if (i % 2 == 0) {
+        leftHabits.add(habits[i]);
+      } else {
+        rightHabits.add(habits[i]);
+      }
+    }
 
-    return AnimatedBuilder(
-      animation: _controller,
-      builder: (context, child) {
-        final angle = _controller.value * 2 * pi;
-        final begin = Alignment(
-          cos(angle),
-          sin(angle),
-        );
-        final end = Alignment(
-          cos(angle + pi),
-          sin(angle + pi),
-        );
-
-        return Container(
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(18),
-            boxShadow: [
-              BoxShadow(
-                color: (widget.isDark ? colors[1] : colors[0]).withValues(alpha: 0.15),
-                blurRadius: 16,
-                spreadRadius: 2,
-              ),
-            ],
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Expanded(
+          child: Column(
+            children: leftHabits.map((h) => _buildHabitCard(context, h)).toList(),
           ),
-          child: Container(
-            padding: const EdgeInsets.all(2.5),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
-              gradient: LinearGradient(
-                begin: begin,
-                end: end,
-                colors: colors,
-              ),
-            ),
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(16),
-              child: child,
-            ),
+        ),
+        const SizedBox(width: 16),
+        Expanded(
+          child: Column(
+            children: rightHabits.map((h) => _buildHabitCard(context, h)).toList(),
           ),
-        );
-      },
-      child: widget.child,
+        ),
+      ],
     );
   }
 }
+
+
 
 // ----------------------------------------------------
 // Real-Time Live Ticking Clock Widget

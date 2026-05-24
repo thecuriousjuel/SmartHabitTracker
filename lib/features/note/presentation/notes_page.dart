@@ -18,6 +18,7 @@ class _NotesPageState extends State<NotesPage> with SingleTickerProviderStateMix
   final _headingController = TextEditingController();
   final _bodyController = TextEditingController();
   final _bodyFocusNode = FocusNode();
+  double _bodyFontSize = 14.0;
 
   // Preset background colors for notes supporting Light/Dark modes
   static const Map<int, Map<Brightness, Color>> _noteColorsMap = {
@@ -388,6 +389,38 @@ class _NotesPageState extends State<NotesPage> with SingleTickerProviderStateMix
                                   tooltip: 'Structured List',
                                   onPressed: () => _insertFormatting('1. ', ''),
                                 ),
+                                const SizedBox(
+                                  height: 20,
+                                  child: VerticalDivider(width: 16, thickness: 1),
+                                ),
+                                _buildToolbarButton(
+                                  icon: Icons.text_decrease,
+                                  tooltip: 'Decrease Font Size',
+                                  onPressed: () {
+                                    setState(() {
+                                      if (_bodyFontSize > 10.0) _bodyFontSize -= 1.0;
+                                    });
+                                  },
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.symmetric(horizontal: 4.0),
+                                  child: Text(
+                                    '${_bodyFontSize.toInt()}',
+                                    style: theme.textTheme.bodyMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: theme.colorScheme.onSurface,
+                                    ),
+                                  ),
+                                ),
+                                _buildToolbarButton(
+                                  icon: Icons.text_increase,
+                                  tooltip: 'Increase Font Size',
+                                  onPressed: () {
+                                    setState(() {
+                                      if (_bodyFontSize < 32.0) _bodyFontSize += 1.0;
+                                    });
+                                  },
+                                ),
                               ],
                             ),
                             // Color Presets Dots
@@ -452,13 +485,19 @@ class _NotesPageState extends State<NotesPage> with SingleTickerProviderStateMix
                                   hintText: 'Start typing here...',
                                   border: InputBorder.none,
                                 ),
-                                style: theme.textTheme.bodyMedium?.copyWith(height: 1.5),
+                                style: theme.textTheme.bodyMedium?.copyWith(
+                                  fontSize: _bodyFontSize,
+                                  height: 1.5,
+                                ),
                               ),
                               // Preview View
                               SingleChildScrollView(
                                 child: RichTextParser(
                                   text: _bodyController.text,
-                                  style: const TextStyle(height: 1.5),
+                                  style: TextStyle(
+                                    fontSize: _bodyFontSize,
+                                    height: 1.5,
+                                  ),
                                 ),
                               ),
                             ],

@@ -175,21 +175,82 @@ class _NavigationShellState extends State<NavigationShell> {
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              _buildThemeDot(0, Colors.grey[800]!, 'Dark Charcoal'),
-                              _buildThemeDot(1, Colors.deepPurple[900]!, 'Dark Blue/Purple'),
-                              _buildThemeDot(2, Colors.white, 'Light White', border: true),
+                              _buildThemeDot(
+                                0,
+                                Colors.grey[800]!,
+                                'Dark Charcoal',
+                                splitColors: const [Color(0xFF121212), Color(0xFF8E8E93)],
+                              ),
+                              _buildThemeDot(
+                                1,
+                                Colors.deepPurple[900]!,
+                                'Dark Blue/Purple',
+                                splitColors: const [Color(0xFF0F0C1B), Color(0xFFBB86FC)],
+                              ),
+                              _buildThemeDot(
+                                2,
+                                Colors.white,
+                                'Light White',
+                                border: true,
+                                splitColors: const [Colors.white, Color(0xFF1976D2)],
+                              ),
                             ],
                           ),
                           const SizedBox(height: 12),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              _buildThemeDot(3, Colors.teal[500]!, 'Light Green'),
-                              _buildThemeDot(4, const Color(0xFF08070A), 'Neon Dark'),
-                              _buildThemeDot(5, const Color(0xFFFCFCFD), 'Neon Light', border: true),
+                              _buildThemeDot(
+                                3,
+                                Colors.teal[500]!,
+                                'Light Green',
+                                border: true,
+                                splitColors: const [Colors.white, Color(0xFF00796B)],
+                              ),
+                              _buildThemeDot(
+                                4,
+                                const Color(0xFF08070A),
+                                'Neon Dark',
+                                splitColors: const [Color(0xFF08070A), Color(0xFF00FF66)],
+                              ),
+                              _buildThemeDot(
+                                5,
+                                const Color(0xFFFCFCFD),
+                                'Neon Light',
+                                border: true,
+                                splitColors: const [Color(0xFFFCFCFD), Color(0xFFE0007A)],
+                              ),
                             ],
                           ),
                         ],
+                      ),
+                      const SizedBox(height: 16),
+                      Center(
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: [
+                            Text(
+                              'Made with ',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                                fontSize: 11,
+                              ),
+                            ),
+                            const Icon(
+                              Icons.favorite,
+                              color: Colors.red,
+                              size: 12,
+                            ),
+                            Text(
+                              ' by Biswajit',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: theme.colorScheme.onSurfaceVariant.withValues(alpha: 0.7),
+                                fontSize: 11,
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
                     ],
                   ),
@@ -255,7 +316,13 @@ class _NavigationShellState extends State<NavigationShell> {
     );
   }
 
-  Widget _buildThemeDot(int index, Color color, String tooltip, {bool border = false}) {
+  Widget _buildThemeDot(
+    int index,
+    Color color,
+    String tooltip, {
+    bool border = false,
+    List<Color>? splitColors,
+  }) {
     final provider = Provider.of<HabitsNotifier>(context, listen: false);
     final isSelected = provider.themeMode == index;
 
@@ -268,7 +335,15 @@ class _NavigationShellState extends State<NavigationShell> {
           width: 32,
           height: 32,
           decoration: BoxDecoration(
-            color: color,
+            color: splitColors == null ? color : null,
+            gradient: splitColors != null
+                ? LinearGradient(
+                    colors: splitColors,
+                    stops: const [0.499, 0.501],
+                    begin: Alignment.centerLeft,
+                    end: Alignment.centerRight,
+                  )
+                : null,
             shape: BoxShape.circle,
             border: Border.all(
               color: isSelected

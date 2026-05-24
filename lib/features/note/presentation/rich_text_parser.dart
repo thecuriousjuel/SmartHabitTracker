@@ -28,7 +28,7 @@ class RichTextParser extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('• ', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Text('• ', style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold).merge(style)),
                 Expanded(
                   child: RichText(
                     text: TextSpan(
@@ -53,7 +53,7 @@ class RichTextParser extends StatelessWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(prefix, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold)),
+                Text(prefix, style: theme.textTheme.bodyMedium?.copyWith(fontWeight: FontWeight.bold).merge(style)),
                 Expanded(
                   child: RichText(
                     text: TextSpan(

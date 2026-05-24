@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:smart_habit_tracker/features/habit/presentation/pulsing_cell_border.dart';
+import '../provider/habits_provider.dart';
 
 class GitHubGrid extends StatelessWidget {
   final Color activeColor;
@@ -30,9 +33,27 @@ class GitHubGrid extends StatelessWidget {
         ? DateTime(habitEndDate!.year, habitEndDate!.month, habitEndDate!.day)
         : null;
 
+    final provider = Provider.of<HabitsNotifier>(context, listen: false);
+    final themeMode = provider.themeMode;
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final inactiveColor = isDark ? const Color(0xFF3E3E42) : const Color(0xFFCCCCCC);
-    final outOfBoundsColor = isDark ? const Color(0xFF1B1B20) : const Color(0xFFF5F5F5);
+    
+    Color inactiveColor;
+    Color outOfBoundsColor;
+
+    if (themeMode == 0) {
+      // Dark Charcoal: make cells more prominent against the card background
+      inactiveColor = const Color(0xFF55555C);
+      outOfBoundsColor = const Color(0xFF2C2C30);
+    } else if (themeMode == 1) {
+      // Dark Blue/Purple: make cells stand out clearly against the deep blue background
+      inactiveColor = const Color(0xFF4B466D);
+      outOfBoundsColor = const Color(0xFF231F3F);
+    } else {
+      // Standard defaults
+      inactiveColor = isDark ? const Color(0xFF3E3E42) : const Color(0xFFCCCCCC);
+      outOfBoundsColor = isDark ? const Color(0xFF1B1B20) : const Color(0xFFF5F5F5);
+    }
 
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -76,7 +97,12 @@ class GitHubGrid extends StatelessWidget {
                     color = outOfBoundsColor; // Days before habit start or after end
                   }
 
-                  return Container(
+                  final isToday = cellDate.year == today.year &&
+                      cellDate.month == today.month &&
+                      cellDate.day == today.day;
+                  final shouldPulse = isToday && !isCompleted && !isBeforeStart && !isAfterEnd;
+
+                  Widget cellWidget = Container(
                     margin: const EdgeInsets.only(bottom: spacing),
                     width: squareSize,
                     height: squareSize,
@@ -85,6 +111,17 @@ class GitHubGrid extends StatelessWidget {
                       borderRadius: BorderRadius.circular(1.5),
                     ),
                   );
+
+                  if (shouldPulse) {
+                    cellWidget = PulsingCellBorder(
+                      color: activeColor,
+                      shape: BoxShape.rectangle,
+                      borderRadius: BorderRadius.circular(1.5),
+                      child: cellWidget,
+                    );
+                  }
+
+                  return cellWidget;
                 }),
               ),
             );

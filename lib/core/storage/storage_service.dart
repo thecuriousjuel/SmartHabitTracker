@@ -208,15 +208,16 @@ class StorageService {
       await _saveWebHabits(habits);
       await _saveWebCompletions(completions);
     } else {
-      await _db!.transaction(() async {
-        await _db!.delete(_db!.habitCompletions).go();
-        await _db!.delete(_db!.habits).go();
+      final database = _db!;
+      await database.transaction(() async {
+        await database.delete(database.habitCompletions).go();
+        await database.delete(database.habits).go();
 
         for (final h in habits) {
-          await _db!.into(_db!.habits).insert(h.toCompanion(true));
+          await database.into(database.habits).insert(h.toCompanion(true));
         }
         for (final c in completions) {
-          await _db!.into(_db!.habitCompletions).insert(c.toCompanion(true));
+          await database.into(database.habitCompletions).insert(c.toCompanion(true));
         }
       });
     }

@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../provider/habits_provider.dart';
 import '../models/habit.dart';
+import 'ambient_glow_wrapper.dart';
+import 'pulsing_cell_border.dart';
 
 class WeeklyViewPage extends StatelessWidget {
   const WeeklyViewPage({super.key});
@@ -32,6 +34,9 @@ class WeeklyViewPage extends StatelessWidget {
     final today = DateTime.now();
     final todayMidnight = DateTime(today.year, today.month, today.day);
 
+    final isNeon = provider.themeMode == 4 || provider.themeMode == 5;
+    final isDarkNeon = provider.themeMode == 4;
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Weekly View', style: TextStyle(fontWeight: FontWeight.bold)),
@@ -45,10 +50,14 @@ class WeeklyViewPage extends StatelessWidget {
             )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
-                  child: Column(
+              child: AmbientGlowWrapper(
+                enabled: isNeon,
+                isDark: isDarkNeon,
+                child: Card(
+                  margin: EdgeInsets.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
+                    child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       // Header Row: Habit Name spacing | Mon | Tue | Wed | Thu | Fri | Sat | Sun
@@ -150,6 +159,46 @@ class WeeklyViewPage extends StatelessWidget {
                                         : const Color(0xFFE0E0E0);
                                   }
 
+                                  final isToday = day.year == todayMidnight.year &&
+                                      day.month == todayMidnight.month &&
+                                      day.day == todayMidnight.day;
+                                  final shouldPulse = isToday && !isCompleted && !isOutOfRange;
+
+                                  Widget cellWidget = AnimatedContainer(
+                                    duration: const Duration(milliseconds: 200),
+                                    width: 32,
+                                    height: 32,
+                                    decoration: BoxDecoration(
+                                      color: cellColor,
+                                      shape: BoxShape.circle,
+                                      border: isFuture || isOutOfRange
+                                          ? Border.all(
+                                              color: theme.colorScheme.onSurface.withOpacity(0.1),
+                                              width: 1,
+                                              style: BorderStyle.solid,
+                                            )
+                                          : null,
+                                    ),
+                                    alignment: Alignment.center,
+                                    child: isCompleted
+                                        ? const Icon(Icons.check, color: Colors.white, size: 16)
+                                        : (isFuture || isOutOfRange
+                                            ? Icon(
+                                                Icons.block,
+                                                size: 14,
+                                                color: theme.colorScheme.onSurface.withOpacity(0.2),
+                                              )
+                                            : null),
+                                  );
+
+                                  if (shouldPulse) {
+                                    cellWidget = PulsingCellBorder(
+                                      color: activeColor,
+                                      shape: BoxShape.circle,
+                                      child: cellWidget,
+                                    );
+                                  }
+
                                   return Expanded(
                                     child: Center(
                                       child: InkWell(
@@ -157,32 +206,7 @@ class WeeklyViewPage extends StatelessWidget {
                                             ? () => provider.toggleCompletion(habit.id, day)
                                             : null,
                                         borderRadius: BorderRadius.circular(100),
-                                        child: AnimatedContainer(
-                                          duration: const Duration(milliseconds: 200),
-                                          width: 32,
-                                          height: 32,
-                                          decoration: BoxDecoration(
-                                            color: cellColor,
-                                            shape: BoxShape.circle,
-                                            border: isFuture || isOutOfRange
-                                                ? Border.all(
-                                                    color: theme.colorScheme.onSurface.withOpacity(0.1),
-                                                    width: 1,
-                                                    style: BorderStyle.solid,
-                                                  )
-                                                : null,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: isCompleted
-                                              ? const Icon(Icons.check, color: Colors.white, size: 16)
-                                              : (isFuture || isOutOfRange
-                                                  ? Icon(
-                                                      Icons.block,
-                                                      size: 14,
-                                                      color: theme.colorScheme.onSurface.withOpacity(0.2),
-                                                    )
-                                                  : null),
-                                        ),
+                                        child: cellWidget,
                                       ),
                                     ),
                                   );
@@ -197,6 +221,7 @@ class WeeklyViewPage extends StatelessWidget {
                 ),
               ),
             ),
+      ),
     );
   }
 }

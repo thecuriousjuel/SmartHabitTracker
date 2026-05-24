@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../provider/habits_provider.dart';
 import '../models/habit.dart';
+import 'ambient_glow_wrapper.dart';
+import 'pulsing_cell_border.dart';
 
 class MonthlyViewPage extends StatelessWidget {
   const MonthlyViewPage({super.key});
@@ -31,6 +33,9 @@ class MonthlyViewPage extends StatelessWidget {
     final todayMidnight = DateTime(now.year, now.month, now.day);
     final currentMonthName = _getMonthName(now.month);
 
+    final isNeon = provider.themeMode == 4 || provider.themeMode == 5;
+    final isDarkNeon = provider.themeMode == 4;
+
     return Scaffold(
       appBar: AppBar(
         title: Text('Monthly View - $currentMonthName ${now.year}', style: const TextStyle(fontWeight: FontWeight.bold)),
@@ -44,9 +49,13 @@ class MonthlyViewPage extends StatelessWidget {
             )
           : SingleChildScrollView(
               padding: const EdgeInsets.all(24.0),
-              child: Card(
-                child: Padding(
-                  padding: const EdgeInsets.all(20.0),
+              child: AmbientGlowWrapper(
+                enabled: isNeon,
+                isDark: isDarkNeon,
+                child: Card(
+                  margin: EdgeInsets.zero,
+                  child: Padding(
+                    padding: const EdgeInsets.all(20.0),
                   child: SingleChildScrollView(
                     scrollDirection: Axis.horizontal,
                     child: Column(
@@ -142,6 +151,45 @@ class MonthlyViewPage extends StatelessWidget {
                                           : const Color(0xFFE0E0E0);
                                     }
 
+                                    final isToday = day.year == todayMidnight.year &&
+                                        day.month == todayMidnight.month &&
+                                        day.day == todayMidnight.day;
+                                    final shouldPulse = isToday && !isCompleted && !isOutOfRange;
+
+                                    Widget cellWidget = AnimatedContainer(
+                                      duration: const Duration(milliseconds: 200),
+                                      width: 28,
+                                      height: 28,
+                                      decoration: BoxDecoration(
+                                        color: cellColor,
+                                        shape: BoxShape.circle,
+                                        border: isFuture || isOutOfRange
+                                            ? Border.all(
+                                                color: theme.colorScheme.onSurface.withOpacity(0.1),
+                                                width: 1,
+                                              )
+                                            : null,
+                                      ),
+                                      alignment: Alignment.center,
+                                      child: isCompleted
+                                          ? const Icon(Icons.check, color: Colors.white, size: 14)
+                                          : (isFuture || isOutOfRange
+                                              ? Icon(
+                                                  Icons.block,
+                                                  size: 12,
+                                                  color: theme.colorScheme.onSurface.withOpacity(0.2),
+                                                )
+                                              : null),
+                                    );
+
+                                    if (shouldPulse) {
+                                      cellWidget = PulsingCellBorder(
+                                        color: activeColor,
+                                        shape: BoxShape.circle,
+                                        child: cellWidget,
+                                      );
+                                    }
+
                                     return Container(
                                       width: 38,
                                       alignment: Alignment.center,
@@ -150,31 +198,7 @@ class MonthlyViewPage extends StatelessWidget {
                                             ? () => provider.toggleCompletion(habit.id, day)
                                             : null,
                                         borderRadius: BorderRadius.circular(100),
-                                        child: AnimatedContainer(
-                                          duration: const Duration(milliseconds: 200),
-                                          width: 28,
-                                          height: 28,
-                                          decoration: BoxDecoration(
-                                            color: cellColor,
-                                            shape: BoxShape.circle,
-                                            border: isFuture || isOutOfRange
-                                                ? Border.all(
-                                                    color: theme.colorScheme.onSurface.withOpacity(0.1),
-                                                    width: 1,
-                                                  )
-                                                : null,
-                                          ),
-                                          alignment: Alignment.center,
-                                          child: isCompleted
-                                              ? const Icon(Icons.check, color: Colors.white, size: 14)
-                                              : (isFuture || isOutOfRange
-                                                  ? Icon(
-                                                      Icons.block,
-                                                      size: 12,
-                                                      color: theme.colorScheme.onSurface.withOpacity(0.2),
-                                                    )
-                                                  : null),
-                                        ),
+                                        child: cellWidget,
                                       ),
                                     );
                                   }),
@@ -189,6 +213,7 @@ class MonthlyViewPage extends StatelessWidget {
                 ),
               ),
             ),
+      ),
     );
   }
 }
