@@ -18,13 +18,18 @@ Future<void> saveBackupFile(String jsonContent) async {
 
 Future<String?> pickAndReadBackupFile() async {
   final result = await FilePicker.platform.pickFiles(
-    type: FileType.custom,
-    allowedExtensions: ['json'],
+    type: FileType.any,
+    withData: true,
   );
   if (result != null && result.files.isNotEmpty) {
-    final bytes = result.files.first.bytes;
-    if (bytes != null) {
-      return utf8.decode(bytes);
+    final file = result.files.first;
+    if (file.name.toLowerCase().endsWith('.json')) {
+      final bytes = file.bytes;
+      if (bytes != null) {
+        return utf8.decode(bytes);
+      }
+    } else {
+      throw Exception('Selected file is not a JSON backup file.');
     }
   }
   return null;

@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../habit/provider/habits_provider.dart';
@@ -147,6 +148,24 @@ class _NotesPageState extends State<NotesPage> with SingleTickerProviderStateMix
     provider.updateNote(note.copyWith(colorHex: colorIndex));
   }
 
+  Color _getGlassNoteColor(int colorIndex) {
+    switch (colorIndex) {
+      case 1:
+        return const Color(0xFFFF5252).withValues(alpha: 0.12);
+      case 2:
+        return const Color(0xFFFFD740).withValues(alpha: 0.12);
+      case 3:
+        return const Color(0xFF69F0AE).withValues(alpha: 0.12);
+      case 4:
+        return const Color(0xFF40C4FF).withValues(alpha: 0.12);
+      case 5:
+        return const Color(0xFFE040FB).withValues(alpha: 0.12);
+      case 0:
+      default:
+        return Colors.white.withValues(alpha: 0.05);
+    }
+  }
+
   String _formatDateTime(DateTime dt) {
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     final hour = dt.hour % 12 == 0 ? 12 : dt.hour % 12;
@@ -173,9 +192,13 @@ class _NotesPageState extends State<NotesPage> with SingleTickerProviderStateMix
       }
     }
 
+    final isGlass = provider.themeMode == 6;
+
     final activeBgColor = activeNote != null
-        ? (_noteColorsMap[activeNote.colorHex]?[theme.brightness] ?? theme.cardTheme.color ?? theme.colorScheme.surface)
-        : theme.colorScheme.surface;
+        ? (isGlass
+            ? _getGlassNoteColor(activeNote.colorHex)
+            : (_noteColorsMap[activeNote.colorHex]?[theme.brightness] ?? theme.cardTheme.color ?? theme.colorScheme.surface))
+        : (isGlass ? Colors.transparent : theme.colorScheme.surface);
 
     return Scaffold(
       appBar: AppBar(
@@ -262,7 +285,7 @@ class _NotesPageState extends State<NotesPage> with SingleTickerProviderStateMix
           Expanded(
             child: activeNote == null
                 ? Container(
-                    color: theme.scaffoldBackgroundColor,
+                    color: isGlass ? Colors.transparent : theme.scaffoldBackgroundColor,
                     child: Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
@@ -281,12 +304,41 @@ class _NotesPageState extends State<NotesPage> with SingleTickerProviderStateMix
                     ),
                   )
                 : Container(
-                    color: activeBgColor,
-                    padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        // Meta Row: Timestamps and Delete Action
+                    decoration: BoxDecoration(
+                      color: activeBgColor,
+                      border: isGlass ? Border(left: BorderSide(color: Colors.white.withValues(alpha: 0.08))) : null,
+                    ),
+                    child: isGlass
+                        ? ClipRect(
+                            child: BackdropFilter(
+                              filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                              child: Padding(
+                                padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: _buildNoteWorkspaceContent(context, activeNote, theme),
+                                ),
+                              ),
+                            ),
+                          )
+                        : Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 32.0, vertical: 24.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: _buildNoteWorkspaceContent(context, activeNote, theme),
+                            ),
+                          ),
+                  ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  List<Widget> _buildNoteWorkspaceContent(BuildContext context, Note activeNote, ThemeData theme) {
+    final provider = Provider.of<HabitsNotifier>(context, listen: false);
+    return [
+      // Meta Row: Timestamps and Delete Action
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
@@ -322,7 +374,7 @@ class _NotesPageState extends State<NotesPage> with SingleTickerProviderStateMix
                                       ),
                                       FilledButton(
                                         onPressed: () {
-                                          provider.deleteNote(activeNote!.id);
+                                          provider.deleteNote(activeNote.id);
                                           setState(() {
                                             _selectedNoteId = null;
                                           });
@@ -427,7 +479,7 @@ class _NotesPageState extends State<NotesPage> with SingleTickerProviderStateMix
                             Row(
                               children: List.generate(_colorPresetDots.length, (index) {
                                 final color = _colorPresetDots[index];
-                                final isSelected = activeNote?.colorHex == index;
+                                final isSelected = activeNote.colorHex == index;
                                 return Padding(
                                   padding: const EdgeInsets.symmetric(horizontal: 4.0),
                                   child: GestureDetector(
@@ -503,13 +555,7 @@ class _NotesPageState extends State<NotesPage> with SingleTickerProviderStateMix
                             ],
                           ),
                         ),
-                      ],
-                    ),
-                  ),
-          )
-        ],
-      ),
-    );
+                      ];
   }
 
   Widget _buildToolbarButton({

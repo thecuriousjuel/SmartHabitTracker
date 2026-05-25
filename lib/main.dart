@@ -77,6 +77,12 @@ class _MainAppState extends State<MainApp> {
       case 5:
         activeTheme = AppTheme.neonLightTheme;
         break;
+      case 6:
+        activeTheme = AppTheme.glassTheme;
+        break;
+      case 7:
+        activeTheme = AppTheme.lightGlassTheme;
+        break;
       case 0:
       default:
         activeTheme = AppTheme.darkGreyTheme;

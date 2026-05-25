@@ -64,16 +64,33 @@ class _NavigationShellState extends State<NavigationShell> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final provider = Provider.of<HabitsNotifier>(context);
+    final isGlass = provider.themeMode == 6 || provider.themeMode == 7;
 
-    return Scaffold(
+    Widget shell = Scaffold(
       body: Row(
         children: [
           // Sidebar Panel
           Container(
             width: 250,
-            color: theme.brightness == Brightness.dark
-                ? const Color(0xFF18181A)
-                : const Color(0xFFF1F3F5),
+            decoration: BoxDecoration(
+              color: isGlass
+                  ? (provider.themeMode == 6
+                      ? Colors.black.withValues(alpha: 0.12)
+                      : Colors.white.withValues(alpha: 0.25))
+                  : (theme.brightness == Brightness.dark
+                      ? const Color(0xFF18181A)
+                      : const Color(0xFFF1F3F5)),
+              border: isGlass
+                  ? Border(
+                      right: BorderSide(
+                        color: provider.themeMode == 6
+                            ? Colors.white.withValues(alpha: 0.08)
+                            : Colors.black.withValues(alpha: 0.05),
+                      ),
+                    )
+                  : null,
+            ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -222,6 +239,26 @@ class _NavigationShellState extends State<NavigationShell> {
                               ),
                             ],
                           ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              _buildThemeDot(
+                                7,
+                                Colors.white,
+                                'Light Glassmorphism',
+                                border: true,
+                                splitColors: const [Color(0xFFF9F7FC), Color(0xFFFFB6C1)],
+                              ),
+                              _buildThemeDot(
+                                6,
+                                Colors.blueGrey,
+                                'Dark Glassmorphism',
+                                splitColors: const [Color(0xFF7F00FF), Color(0xFF00E5FF)],
+                              ),
+                              const SizedBox(width: 32),
+                            ],
+                          ),
                         ],
                       ),
                       const SizedBox(height: 16),
@@ -267,6 +304,18 @@ class _NavigationShellState extends State<NavigationShell> {
         ],
       ),
     );
+
+    if (isGlass) {
+      return Stack(
+        children: [
+          provider.themeMode == 6
+              ? const _GlassBackground()
+              : const _LightGlassBackground(),
+          shell,
+        ],
+      );
+    }
+    return shell;
   }
 
   Widget _buildSidebarItem({
@@ -356,7 +405,7 @@ class _NavigationShellState extends State<NavigationShell> {
               ? Icon(
                   Icons.check,
                   size: 16,
-                  color: (index == 2 || index == 5) ? Colors.black : Colors.white,
+                  color: (index == 2 || index == 5 || index == 7) ? Colors.black : Colors.white,
                 )
               : null,
         ),
@@ -381,6 +430,158 @@ class BulletPoint extends StatelessWidget {
           Expanded(child: Text(text)),
         ],
       ),
+    );
+  }
+}
+
+class _GlassBackground extends StatelessWidget {
+  const _GlassBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFF0F0C20),
+                Color(0xFF15102A),
+                Color(0xFF06040B),
+              ],
+            ),
+          ),
+        ),
+        Positioned(
+          top: -120,
+          left: -120,
+          child: Container(
+            width: 450,
+            height: 450,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFFFF007F).withValues(alpha: 0.24),
+                  const Color(0xFFFF007F).withValues(alpha: 0.0),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: -150,
+          right: -150,
+          child: Container(
+            width: 550,
+            height: 550,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF00E5FF).withValues(alpha: 0.22),
+                  const Color(0xFF00E5FF).withValues(alpha: 0.0),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 100,
+          right: -50,
+          child: Container(
+            width: 380,
+            height: 380,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFF7F00FF).withValues(alpha: 0.22),
+                  const Color(0xFF7F00FF).withValues(alpha: 0.0),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class _LightGlassBackground extends StatelessWidget {
+  const _LightGlassBackground();
+
+  @override
+  Widget build(BuildContext context) {
+    return Stack(
+      children: [
+        Container(
+          decoration: const BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                Color(0xFFF9F7FC),
+                Color(0xFFF1F3FE),
+                Color(0xFFE8ECFD),
+              ],
+            ),
+          ),
+        ),
+        Positioned(
+          top: -120,
+          left: -120,
+          child: Container(
+            width: 450,
+            height: 450,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFFFFB6C1).withValues(alpha: 0.35),
+                  const Color(0xFFFFB6C1).withValues(alpha: 0.0),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          bottom: -150,
+          right: -150,
+          child: Container(
+            width: 550,
+            height: 550,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFFB2EBF2).withValues(alpha: 0.35),
+                  const Color(0xFFB2EBF2).withValues(alpha: 0.0),
+                ],
+              ),
+            ),
+          ),
+        ),
+        Positioned(
+          top: 100,
+          right: -50,
+          child: Container(
+            width: 380,
+            height: 380,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  const Color(0xFFE1BEE7).withValues(alpha: 0.35),
+                  const Color(0xFFE1BEE7).withValues(alpha: 0.0),
+                ],
+              ),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }

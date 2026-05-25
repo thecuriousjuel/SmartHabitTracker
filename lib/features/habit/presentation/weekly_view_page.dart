@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../provider/habits_provider.dart';
 import '../models/habit.dart';
 import 'ambient_glow_wrapper.dart';
+import 'glass_wrapper.dart';
 import 'pulsing_cell_border.dart';
 
 class WeeklyViewPage extends StatelessWidget {
@@ -36,6 +37,7 @@ class WeeklyViewPage extends StatelessWidget {
 
     final isNeon = provider.themeMode == 4 || provider.themeMode == 5;
     final isDarkNeon = provider.themeMode == 4;
+    final isGlass = provider.themeMode == 6;
 
     return Scaffold(
       appBar: AppBar(
@@ -53,10 +55,15 @@ class WeeklyViewPage extends StatelessWidget {
               child: AmbientGlowWrapper(
                 enabled: isNeon,
                 isDark: isDarkNeon,
-                child: Card(
-                  margin: EdgeInsets.zero,
-                  child: Padding(
-                    padding: const EdgeInsets.all(20.0),
+                child: GlassWrapper(
+                  enabled: isGlass,
+                  child: Card(
+                    margin: EdgeInsets.zero,
+                    elevation: isGlass ? 0 : null,
+                    color: isGlass ? Colors.transparent : null,
+                    shape: isGlass ? const RoundedRectangleBorder(side: BorderSide.none) : null,
+                    child: Padding(
+                      padding: const EdgeInsets.all(20.0),
                     child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
@@ -221,6 +228,7 @@ class WeeklyViewPage extends StatelessWidget {
                 ),
               ),
             ),
+          ),
       ),
     );
   }

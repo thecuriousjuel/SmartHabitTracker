@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/painting.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:drift/drift.dart';
 import 'app_database.dart';
@@ -170,7 +171,7 @@ class StorageService {
   }
 
   int getThemeMode() {
-    return _prefs.getInt(_keyThemeMode) ?? 0;
+    return _prefs.getInt(_keyThemeMode) ?? 7;
   }
 
   Future<void> setFirstTimeUser(bool isFirstTime) async {
@@ -201,7 +202,17 @@ class StorageService {
     final List<dynamic> completionsRaw = data['completions'] as List<dynamic>;
     final List<dynamic>? notesRaw = data['notes'] as List<dynamic>?;
 
-    final List<Habit> habits = habitsRaw.map((h) => Habit.fromJson(h as Map<String, dynamic>)).toList();
+    final int themeMode = _prefs.getInt(_keyThemeMode) ?? 7;
+    final isGlass = themeMode == 6 || themeMode == 7;
+
+    List<Habit> habits = habitsRaw.map((h) => Habit.fromJson(h as Map<String, dynamic>)).toList();
+    if (isGlass) {
+      habits = habits.map((h) {
+        final glassColorHex = _convertToGlassColor(h.colorHex);
+        return h.copyWith(colorHex: glassColorHex);
+      }).toList();
+    }
+
     final List<HabitCompletion> completions = completionsRaw.map((c) => HabitCompletion.fromJson(c as Map<String, dynamic>)).toList();
 
     if (kIsWeb) {
@@ -238,5 +249,12 @@ class StorageService {
   Future<void> saveNotes(List<Note> notes) async {
     final list = notes.map((n) => jsonEncode(n.toJson())).toList();
     await _prefs.setStringList('app_notes', list);
+  }
+
+  int _convertToGlassColor(int originalColorHex) {
+    final color = Color(originalColorHex);
+    final hsl = HSLColor.fromColor(color);
+    final glassColor = hsl.withSaturation(0.90).withLightness(0.68).toColor();
+    return glassColor.value;
   }
 }

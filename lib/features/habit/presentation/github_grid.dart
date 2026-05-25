@@ -49,6 +49,14 @@ class GitHubGrid extends StatelessWidget {
       // Dark Blue/Purple: make cells stand out clearly against the deep blue background
       inactiveColor = const Color(0xFF4B466D);
       outOfBoundsColor = const Color(0xFF231F3F);
+    } else if (themeMode == 6) {
+      // Dark Glassmorphism: prominent semi-transparent white cells
+      inactiveColor = Colors.white.withValues(alpha: 0.22);
+      outOfBoundsColor = Colors.white.withValues(alpha: 0.06);
+    } else if (themeMode == 7) {
+      // Light Glassmorphism: prominent semi-transparent black cells
+      inactiveColor = Colors.black.withValues(alpha: 0.18);
+      outOfBoundsColor = Colors.black.withValues(alpha: 0.05);
     } else {
       // Standard defaults
       inactiveColor = isDark ? const Color(0xFF3E3E42) : const Color(0xFFCCCCCC);

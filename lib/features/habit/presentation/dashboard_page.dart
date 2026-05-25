@@ -5,6 +5,7 @@ import '../../../core/storage/backup/backup_helper.dart';
 import '../models/habit.dart';
 import '../provider/habits_provider.dart';
 import 'ambient_glow_wrapper.dart';
+import 'glass_wrapper.dart';
 import 'github_grid.dart';
 import 'habit_calendar_dialog.dart';
 import 'habit_creation_dialog.dart';
@@ -293,9 +294,13 @@ class _DashboardPageState extends State<DashboardPage> {
 
     final isNeon = provider.themeMode == 4 || provider.themeMode == 5;
     final isDarkNeon = provider.themeMode == 4;
+    final isGlass = provider.themeMode == 6;
 
     Widget cardWidget = Card(
-      margin: isNeon ? EdgeInsets.zero : const EdgeInsets.symmetric(vertical: 6.0),
+      margin: (isNeon || isGlass) ? EdgeInsets.zero : const EdgeInsets.symmetric(vertical: 6.0),
+      elevation: isGlass ? 0 : null,
+      color: isGlass ? Colors.transparent : null,
+      shape: isGlass ? const RoundedRectangleBorder(side: BorderSide.none) : null,
       child: InkWell(
         onTap: () => _openCalendar(context, habit),
         borderRadius: BorderRadius.circular(16),
@@ -407,6 +412,14 @@ class _DashboardPageState extends State<DashboardPage> {
         child: AmbientGlowWrapper(
           enabled: true,
           isDark: isDarkNeon,
+          child: cardWidget,
+        ),
+      );
+    } else if (isGlass) {
+      cardWidget = Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: GlassWrapper(
+          enabled: true,
           child: cardWidget,
         ),
       );

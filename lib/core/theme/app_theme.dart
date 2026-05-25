@@ -148,4 +148,80 @@ class AppTheme {
       ),
     );
   }
+
+  // 7. Glassmorphic Theme
+  static ThemeData get glassTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.dark,
+      scaffoldBackgroundColor: Colors.transparent,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        iconTheme: IconThemeData(color: Colors.white),
+        titleTextStyle: TextStyle(color: Colors.white, fontSize: 20, fontWeight: FontWeight.bold),
+      ),
+      cardTheme: CardThemeData(
+        color: Colors.white.withOpacity(0.06),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.white.withOpacity(0.12), width: 1.0),
+        ),
+      ),
+      colorScheme: ColorScheme.dark(
+        primary: const Color(0xFFBB86FC),
+        secondary: Colors.cyanAccent,
+        surface: Colors.white.withOpacity(0.04),
+        onSurface: Colors.white,
+        outlineVariant: Colors.white.withOpacity(0.1),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: const Color(0xFF1E1C2E).withOpacity(0.85),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: Colors.white.withOpacity(0.15), width: 1.0),
+        ),
+      ),
+    );
+  }
+
+  // 8. Light Glassmorphic Theme
+  static ThemeData get lightGlassTheme {
+    return ThemeData(
+      useMaterial3: true,
+      brightness: Brightness.light,
+      scaffoldBackgroundColor: Colors.transparent,
+      appBarTheme: const AppBarTheme(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        scrolledUnderElevation: 0,
+        iconTheme: IconThemeData(color: Color(0xFF1E1C2E)),
+        titleTextStyle: TextStyle(color: Color(0xFF1E1C2E), fontSize: 20, fontWeight: FontWeight.bold),
+      ),
+      cardTheme: CardThemeData(
+        color: Colors.white.withValues(alpha: 0.4),
+        elevation: 0,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.6), width: 1.0),
+        ),
+      ),
+      colorScheme: ColorScheme.light(
+        primary: const Color(0xFF8E24AA), // Deep Purple
+        secondary: const Color(0xFF00ACC1), // Cyan
+        surface: Colors.white.withValues(alpha: 0.3),
+        onSurface: const Color(0xFF1E1C2E),
+        outlineVariant: Colors.black.withValues(alpha: 0.08),
+      ),
+      dialogTheme: DialogThemeData(
+        backgroundColor: const Color(0xFFF5F5FA).withValues(alpha: 0.9),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: Colors.white.withValues(alpha: 0.7), width: 1.0),
+        ),
+      ),
+    );
+  }
 }
