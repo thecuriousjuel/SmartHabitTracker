@@ -2,7 +2,7 @@ import 'dart:convert';
 import 'dart:html' as html;
 import 'package:file_picker/file_picker.dart';
 
-Future<void> saveBackupFile(String jsonContent) async {
+Future<bool> saveBackupFile(String jsonContent) async {
   final bytes = utf8.encode(jsonContent);
   final blob = html.Blob([bytes], 'application/json');
   final url = html.Url.createObjectUrlFromBlob(blob);
@@ -14,6 +14,7 @@ Future<void> saveBackupFile(String jsonContent) async {
   anchor.click();
   html.document.body?.children.remove(anchor);
   html.Url.revokeObjectUrl(url);
+  return true;
 }
 
 Future<String?> pickAndReadBackupFile() async {

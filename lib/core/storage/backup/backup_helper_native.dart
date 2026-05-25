@@ -1,7 +1,7 @@
 import 'dart:io';
 import 'package:file_picker/file_picker.dart';
 
-Future<void> saveBackupFile(String jsonContent) async {
+Future<bool> saveBackupFile(String jsonContent) async {
   final path = await FilePicker.platform.saveFile(
     dialogTitle: 'Save Backup',
     fileName: 'smart_habits_backup.json',
@@ -13,7 +13,9 @@ Future<void> saveBackupFile(String jsonContent) async {
     }
     final file = File(finalPath);
     await file.writeAsString(jsonContent);
+    return true;
   }
+  return false;
 }
 
 Future<String?> pickAndReadBackupFile() async {

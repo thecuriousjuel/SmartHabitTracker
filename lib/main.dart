@@ -39,14 +39,24 @@ class _MainAppState extends State<MainApp> {
   }
 
   Future<void> _initApp() async {
-    final notifier = Provider.of<HabitsNotifier>(context, listen: false);
-    await notifier.loadData();
-    setState(() {
-      _isLoading = false;
-    });
+    try {
+      final notifier = Provider.of<HabitsNotifier>(context, listen: false);
+      await notifier.loadData();
+    } catch (e) {
+      debugPrint('Error during app initialization: $e');
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isLoading = false;
+        });
+      }
+    }
 
+    if (!mounted) return;
+    final notifier = Provider.of<HabitsNotifier>(context, listen: false);
     if (notifier.isFirstTimeUser) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!mounted) return;
         showDialog(
           context: context,
           barrierDismissible: false,

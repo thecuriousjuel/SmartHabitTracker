@@ -42,26 +42,198 @@ class _DashboardPageState extends State<DashboardPage> {
     });
   }
 
+  void _showThemedSnackBar(BuildContext context, String message, {bool isError = false}) {
+    final provider = Provider.of<HabitsNotifier>(context, listen: false);
+    final themeMode = provider.themeMode;
+    final theme = Theme.of(context);
+
+    final isNeon = themeMode == 4 || themeMode == 5;
+    final isDarkNeon = themeMode == 4;
+    final isGlass = themeMode == 6 || themeMode == 7;
+    final isDarkGlass = themeMode == 6;
+    final isFunky = themeMode == 8 || themeMode == 9;
+    final isDarkFunky = themeMode == 9;
+
+    Widget content;
+
+    if (isFunky) {
+      final borderColor = isDarkFunky ? Colors.white : Colors.black;
+      final shadowColor = isDarkFunky ? Colors.black : Colors.black.withOpacity(0.2);
+      final bgColor = isError 
+          ? (isDarkFunky ? const Color(0xFF5A1A1A) : const Color(0xFFFFD1D1))
+          : (isDarkFunky ? const Color(0xFF1E1735) : Colors.white);
+      
+      content = Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(color: borderColor, width: 2.5),
+          boxShadow: [
+            BoxShadow(
+              color: shadowColor,
+              offset: const Offset(4, 4),
+              blurRadius: 0,
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            Text(isError ? '⚠️' : '🕺', style: const TextStyle(fontSize: 20)),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(
+                  color: isDarkFunky ? Colors.white : Colors.black,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    } else if (isGlass) {
+      final bgColor = isError 
+          ? Colors.red.withOpacity(0.2) 
+          : (isDarkGlass ? Colors.black.withOpacity(0.4) : Colors.white.withOpacity(0.4));
+      final borderColor = isError 
+          ? Colors.red.withOpacity(0.3) 
+          : (isDarkGlass ? Colors.white.withOpacity(0.12) : Colors.black.withOpacity(0.08));
+      
+      content = GlassWrapper(
+        enabled: true,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: borderColor, width: 1.0),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded,
+                color: isError ? Colors.redAccent : (isDarkGlass ? Colors.cyanAccent : theme.colorScheme.primary),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: TextStyle(
+                    color: isDarkGlass ? Colors.white : const Color(0xFF1E1C2E),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else if (isNeon) {
+      final bgColor = isDarkNeon ? const Color(0xFF100F15) : Colors.white;
+      final neonColor = isError ? Colors.redAccent : (isDarkNeon ? const Color(0xFF00FFFF) : const Color(0xFFFF007F));
+      
+      content = AmbientGlowWrapper(
+        enabled: true,
+        isDark: isDarkNeon,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: neonColor, width: 1.5),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                isError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded,
+                color: neonColor,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  message,
+                  style: TextStyle(
+                    color: isDarkNeon ? Colors.white : Colors.black,
+                    fontWeight: FontWeight.bold,
+                    shadows: isDarkNeon ? [
+                      Shadow(color: neonColor.withOpacity(0.6), blurRadius: 4),
+                    ] : null,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    } else {
+      // Standard styles
+      final bgColor = theme.cardTheme.color ?? theme.colorScheme.surface;
+      final borderColor = isError ? Colors.redAccent : theme.colorScheme.primary.withOpacity(0.3);
+      
+      content = Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+        decoration: BoxDecoration(
+          color: bgColor,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: borderColor, width: 1.5),
+          boxShadow: const [
+            BoxShadow(
+              color: Colors.black12,
+              offset: Offset(0, 4),
+              blurRadius: 10,
+            ),
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(
+              isError ? Icons.error_outline_rounded : Icons.check_circle_outline_rounded,
+              color: isError ? Colors.redAccent : theme.colorScheme.primary,
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                message,
+                style: TextStyle(
+                  color: theme.colorScheme.onSurface,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        margin: const EdgeInsets.all(16),
+        padding: EdgeInsets.zero,
+        duration: const Duration(seconds: 3),
+        content: content,
+      ),
+    );
+  }
+
   Future<void> _exportBackup() async {
     try {
       final provider = Provider.of<HabitsNotifier>(context, listen: false);
       final jsonStr = provider.exportBackupData();
-      await saveBackupFile(jsonStr);
+      final success = await saveBackupFile(jsonStr);
+      if (!success) return; // User cancelled
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('Backup exported successfully!'),
-          backgroundColor: Colors.green,
-        ),
-      );
+      _showThemedSnackBar(context, 'Backup exported successfully!');
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to export backup: $e'),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
+      _showThemedSnackBar(context, 'Failed to export backup: $e', isError: true);
     }
   }
 
@@ -96,21 +268,11 @@ class _DashboardPageState extends State<DashboardPage> {
         final provider = Provider.of<HabitsNotifier>(context, listen: false);
         await provider.importBackupData(jsonStr);
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Backup imported successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        _showThemedSnackBar(context, 'Backup imported successfully!');
       }
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('Failed to import backup: $e'),
-          backgroundColor: Colors.redAccent,
-        ),
-      );
+      _showThemedSnackBar(context, 'Failed to import backup: $e', isError: true);
     }
   }
 

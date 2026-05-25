@@ -1,4 +1,4 @@
-Future<void> saveBackupFile(String jsonContent) async {
+Future<bool> saveBackupFile(String jsonContent) async {
   throw UnimplementedError('Backup save is not implemented on this platform.');
 }
 
