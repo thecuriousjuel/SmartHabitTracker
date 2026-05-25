@@ -89,46 +89,140 @@ class _HabitCreationDialogState extends State<HabitCreationDialog> {
     super.dispose();
   }
 
+  static const List<String> _availableEmojis = [
+    // Smileys & Emotion
+    '😀', '😃', '😄', '😁', '😆', '😅', '😂', '🤣', '😊', '😇',
+    '🙂', '🙃', '😉', '😌', '😍', '🥰', '😘', '😗', '😙', '😚',
+    '😋', '😛', '😝', '😜', '🤪', '🤨', '🧐', '🤓', '😎', '🥸',
+    '🤩', '🥳', '😏', '😒', '😞', '😔', '😟', '😕', '🙁', '☹️',
+    '😣', '😖', '😫', '😩', '🥺', '😢', '😭', '😤', '😠', '😡',
+    '🤬', '🤯', '😳', '🥵', '🥶', '😱', '😨', '😰', '😥', '😓',
+    '🤗', '🤔', '🫣', '🤭', '🤫', '🤥', '😶', '🫥', '😐', '😑',
+    '😬', '🫨', '🫠', '😴', '😷', '🤒', '🤕', '🤢', '🤮',
+    // Activities / Health
+    '🏃', '🚶', '🤸', '🏋️', '🚴', '🧘', '🏊', '🧗', '⛹️', '🏇',
+    '🏆', '🎖️', '🏅', '🥇', '🥈', '🥉', '⚽', '🏀', '🏈', '⚾',
+    '🎾', '🏐', '🏉', '🎱', '🏓', '🏸', '🏒', '⛳', '🏹', '🎣',
+    // Food & Drink
+    '🍏', '🍎', '🍐', '🍊', '🍋', '🍌', '🍉', '🍇', '🍓', '🫐',
+    '🍈', '🍒', '🍑', '🥭', '🍍', '🥥', '🥝', '🍅', '🥑', '🍆',
+    '🥔', '🥕', '🌽', '🌶️', '🫑', '🥬', '🥦', '🍄', '🥜', '🌰',
+    '🍞', '🥐', '🥖', '🥨', '🥞', '🧇', '🧀', '🍖', '🍗', '🥩',
+    '🍔', '🍟', '🍕', '🌭', '🥪', '🌮', '🌯', '🥗', '🥘', '🍜',
+    '🍣', '🍤', '🧁', '🍩', '🍪', '🎂', '🍫', '🍬', '🍭', '🍯',
+    '☕', '🍵', '🍶', '🍷', '🍸', '🍹', '🍺', '🍻', '🥤', '🧃',
+    // Objects / Life
+    '⏰', '⌚', '💻', '📱', '⌨️', '🖥️', '🖨️', '🖱️', '🔋', '🔌',
+    '💡', '🔦', '🕯️', '💵', '🪙', '💳', '💎', '⚖️', '🔧', '🔨',
+    '🪛', '🛡️', '🔑', '🗝️', '🛋️', '🛌', '🛀', '🚿', '🧼', '🪥',
+    '🧹', '🧺', '🧻', '💊', '🩺', '🩹', '🧪', '🧬', '🔬', '🔭',
+    '📚', '📖', '📓', '🗒️', '📅', '🗑️', '✏️', '🎨', '🎬',
+    '🎤', '🎧', '🎼', '🎹', '🥁', '🎸', '🎻', '🎮', '🧩', '🧸',
+    // Nature / Symbols
+    '❤️', '🧡', '💛', '💚', '💙', '💜', '🖤', '🤍', '🤎', '💖',
+    '☀️', '🌤️', '⛅', '🌥️', '☁️', '🌦️', '🌧️', '⛈️', '🌩️', '❄️',
+    '🔥', '💧', '⚡', '🌈', '🌊', '🌱', '🌿', '🍀', '🍁',
+    '🍂', '🌸', '🌹', '🌺', '🌻', '🌼', '🌷', '🌙', '🌟', '🎯',
+  ];
+
   void _showIconPicker() {
     showDialog(
       context: context,
       builder: (ctx) {
-        return AlertDialog(
-          title: const Text('Select Habit Icon'),
-          content: SizedBox(
-            width: 300,
-            child: GridView.builder(
-              shrinkWrap: true,
-              itemCount: _availableIcons.length,
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 5,
-                crossAxisSpacing: 8,
-                mainAxisSpacing: 8,
-              ),
-              itemBuilder: (context, index) {
-                final icon = _availableIcons[index];
-                return InkWell(
-                  onTap: () {
-                    setState(() {
-                      _selectedIconCode = icon.codePoint;
-                    });
-                    Navigator.of(context).pop();
-                  },
-                  borderRadius: BorderRadius.circular(12),
-                  child: Container(
-                    decoration: BoxDecoration(
-                      border: Border.all(
-                        color: _selectedIconCode == icon.codePoint
-                            ? Theme.of(context).colorScheme.primary
-                            : Colors.transparent,
-                        width: 2,
-                      ),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Icon(icon, size: 28),
+        return DefaultTabController(
+          length: 2,
+          child: AlertDialog(
+            title: const Text('Select Icon or Emoji'),
+            content: SizedBox(
+              width: 350,
+              height: 400,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const TabBar(
+                    tabs: [
+                      Tab(text: 'Icons'),
+                      Tab(text: 'Emojis'),
+                    ],
                   ),
-                );
-              },
+                  const SizedBox(height: 16),
+                  Expanded(
+                    child: TabBarView(
+                      children: [
+                        GridView.builder(
+                          itemCount: _availableIcons.length,
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 5,
+                            crossAxisSpacing: 8,
+                            mainAxisSpacing: 8,
+                          ),
+                          itemBuilder: (context, index) {
+                            final icon = _availableIcons[index];
+                            return InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _selectedIconCode = icon.codePoint;
+                                });
+                                Navigator.of(context).pop();
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: _selectedIconCode == icon.codePoint
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.transparent,
+                                    width: 2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(icon, size: 28),
+                              ),
+                            );
+                          },
+                        ),
+                        GridView.builder(
+                          itemCount: _availableEmojis.length,
+                          gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                            crossAxisCount: 6,
+                            crossAxisSpacing: 6,
+                            mainAxisSpacing: 6,
+                          ),
+                          itemBuilder: (context, index) {
+                            final emojiStr = _availableEmojis[index];
+                            final emojiCode = emojiStr.runes.first;
+                            return InkWell(
+                              onTap: () {
+                                setState(() {
+                                  _selectedIconCode = emojiCode;
+                                });
+                                Navigator.of(context).pop();
+                              },
+                              borderRadius: BorderRadius.circular(12),
+                              child: Container(
+                                decoration: BoxDecoration(
+                                  border: Border.all(
+                                    color: _selectedIconCode == emojiCode
+                                        ? Theme.of(context).colorScheme.primary
+                                        : Colors.transparent,
+                                    width: 2,
+                                  ),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                alignment: Alignment.center,
+                                child: Text(
+                                  emojiStr,
+                                  style: const TextStyle(fontSize: 22),
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         );
@@ -301,7 +395,6 @@ class _HabitCreationDialogState extends State<HabitCreationDialog> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final iconData = getHabitIcon(_selectedIconCode);
 
     return PopScope(
       canPop: !widget.isFirstHabit, // First habit dialog is non-dismissible
@@ -331,12 +424,13 @@ class _HabitCreationDialogState extends State<HabitCreationDialog> {
                         child: Container(
                           width: 56,
                           height: 56,
+                          alignment: Alignment.center,
                           decoration: BoxDecoration(
                             color: theme.colorScheme.primaryContainer.withOpacity(0.3),
                             borderRadius: BorderRadius.circular(16),
                             border: Border.all(color: theme.colorScheme.outlineVariant),
                           ),
-                          child: Icon(iconData, size: 32, color: _selectedColor),
+                          child: buildHabitIconWidget(_selectedIconCode, color: _selectedColor, size: 32),
                         ),
                       ),
                       const SizedBox(width: 16),

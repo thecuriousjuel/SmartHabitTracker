@@ -65,10 +65,7 @@ class _HabitCalendarDialogState extends State<HabitCalendarDialog> {
           Expanded(
             child: Row(
               children: [
-                Icon(
-                  getHabitIcon(widget.habit.iconCodePoint),
-                  color: activeColor,
-                ),
+                buildHabitIconWidget(widget.habit.iconCodePoint, color: activeColor, size: 24),
                 const SizedBox(width: 8),
                 Expanded(
                   child: Text(

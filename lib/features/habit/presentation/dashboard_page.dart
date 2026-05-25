@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../core/storage/backup/backup_helper.dart';
@@ -20,6 +21,26 @@ class DashboardPage extends StatefulWidget {
 class _DashboardPageState extends State<DashboardPage> {
   bool _showUpcoming = false;
   bool _showPast = false;
+  final List<FloatingXPText> _floatingTexts = [];
+
+  void _triggerFloatingXP(Offset globalPosition) {
+    final key = UniqueKey();
+    final randomText = (DateTime.now().millisecond % 3 == 0) ? "LEVEL UP!" : "+100 XP";
+    setState(() {
+      _floatingTexts.add(FloatingXPText(
+        key: key,
+        position: globalPosition,
+        text: randomText,
+      ));
+    });
+    Timer(const Duration(milliseconds: 1200), () {
+      if (mounted) {
+        setState(() {
+          _floatingTexts.removeWhere((item) => item.key == key);
+        });
+      }
+    });
+  }
 
   Future<void> _exportBackup() async {
     try {
@@ -132,17 +153,17 @@ class _DashboardPageState extends State<DashboardPage> {
     final upcoming = provider.upcomingHabits;
     final past = provider.pastHabits;
 
-    return Scaffold(
+    final body = Scaffold(
       appBar: AppBar(
         title: const Text('Dashboard', style: TextStyle(fontWeight: FontWeight.bold)),
         actions: [
           IconButton(
-            icon: const Icon(Icons.download_rounded),
+            icon: const Icon(Icons.file_upload_rounded),
             tooltip: 'Export Backup',
             onPressed: _exportBackup,
           ),
           IconButton(
-            icon: const Icon(Icons.upload_file_rounded),
+            icon: const Icon(Icons.file_download_rounded),
             tooltip: 'Import Backup',
             onPressed: _importBackup,
           ),
@@ -207,6 +228,20 @@ class _DashboardPageState extends State<DashboardPage> {
         ),
       ),
     );
+
+    if (_floatingTexts.isNotEmpty) {
+      return Stack(
+        children: [
+          body,
+          ..._floatingTexts.map((ft) => FloatingXPEffect(
+                key: ft.key,
+                startPosition: ft.position,
+                text: ft.text,
+              )),
+        ],
+      );
+    }
+    return body;
   }
 
   Widget _buildStatBanner(BuildContext context, int ongoingCount) {
@@ -295,6 +330,8 @@ class _DashboardPageState extends State<DashboardPage> {
     final isNeon = provider.themeMode == 4 || provider.themeMode == 5;
     final isDarkNeon = provider.themeMode == 4;
     final isGlass = provider.themeMode == 6;
+    final isFunky = provider.themeMode == 8 || provider.themeMode == 9;
+    final isDarkFunky = provider.themeMode == 9;
 
     Widget cardWidget = Card(
       margin: (isNeon || isGlass) ? EdgeInsets.zero : const EdgeInsets.symmetric(vertical: 6.0),
@@ -320,10 +357,8 @@ class _DashboardPageState extends State<DashboardPage> {
                       color: activeColor.withOpacity(0.1),
                       borderRadius: BorderRadius.circular(8),
                     ),
-                    child: Icon(
-                      getHabitIcon(habit.iconCodePoint),
-                      color: activeColor,
-                      size: 20,
+                    child: Center(
+                      child: buildHabitIconWidget(habit.iconCodePoint, color: activeColor, size: 20),
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -351,18 +386,58 @@ class _DashboardPageState extends State<DashboardPage> {
                   ),
                   const SizedBox(width: 8),
                   // Completion Button
-                  IconButton(
-                    icon: Icon(
-                      isDoneToday ? Icons.check_circle : Icons.check_circle_outline,
-                      color: isDoneToday ? activeColor : theme.colorScheme.onSurfaceVariant,
-                      size: 24,
-                    ),
-                    padding: EdgeInsets.zero,
-                    constraints: const BoxConstraints(),
-                    onPressed: () {
-                      provider.toggleCompletion(habit.id, DateTime.now());
-                    },
-                  ),
+                  isFunky
+                      ? GestureDetector(
+                          onTap: () {
+                            provider.toggleCompletion(habit.id, DateTime.now());
+                          },
+                          child: Container(
+                            width: 26,
+                            height: 26,
+                            decoration: BoxDecoration(
+                              color: isDoneToday ? activeColor : (isDarkFunky ? const Color(0xFF130E26) : Colors.white),
+                              borderRadius: BorderRadius.circular(6),
+                              border: Border.all(color: isDarkFunky ? Colors.white : Colors.black, width: 2),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: isDarkFunky ? Colors.black : Colors.black.withOpacity(0.25),
+                                  offset: const Offset(2, 2),
+                                  blurRadius: 0,
+                                ),
+                              ],
+                            ),
+                            child: isDoneToday
+                                ? Icon(
+                                    Icons.check,
+                                    size: 16,
+                                    color: isDarkFunky ? Colors.black : Colors.white,
+                                  )
+                                : null,
+                          ),
+                        )
+                      : GestureDetector(
+                          behavior: HitTestBehavior.opaque,
+                          onTapDown: (details) {
+                            if (!isDoneToday && provider.themeMode == 8) {
+                              _triggerFloatingXP(details.globalPosition);
+                            }
+                            provider.toggleCompletion(habit.id, DateTime.now());
+                          },
+                          child: IgnorePointer(
+                            child: IconButton(
+                              icon: Icon(
+                                isDoneToday
+                                    ? (provider.themeMode == 8 ? Icons.check_box : Icons.check_circle)
+                                    : (provider.themeMode == 8 ? Icons.check_box_outline_blank : Icons.check_circle_outline),
+                                color: isDoneToday ? activeColor : theme.colorScheme.onSurfaceVariant,
+                                size: 24,
+                              ),
+                              padding: EdgeInsets.zero,
+                              constraints: const BoxConstraints(),
+                              onPressed: () {},
+                            ),
+                          ),
+                        ),
                   const SizedBox(width: 8),
                   IconButton(
                     icon: const Icon(Icons.edit_outlined, color: Colors.grey, size: 20),
@@ -390,15 +465,26 @@ class _DashboardPageState extends State<DashboardPage> {
               // GitHub Grid
               SizedBox(
                 width: double.infinity,
-                child: SingleChildScrollView(
-                  scrollDirection: Axis.horizontal,
-                  child: GitHubGrid(
-                    activeColor: activeColor,
-                    completedDates: provider.getCompletedDates(habit.id),
-                    habitStartDate: habit.startDate,
-                    habitEndDate: habit.endDate,
-                  ),
-                ),
+                // For Funky themes GitHubGrid owns its own ScrollController
+                // so it can jump to the end (most-recent weeks) on first render.
+                // For all other themes use the regular horizontal scroll wrapper.
+                child: isFunky
+                    ? GitHubGrid(
+                        activeColor: activeColor,
+                        completedDates: provider.getCompletedDates(habit.id),
+                        habitStartDate: habit.startDate,
+                        habitEndDate: habit.endDate,
+                        autoScrollToEnd: true,
+                      )
+                    : SingleChildScrollView(
+                        scrollDirection: Axis.horizontal,
+                        child: GitHubGrid(
+                          activeColor: activeColor,
+                          completedDates: provider.getCompletedDates(habit.id),
+                          habitStartDate: habit.startDate,
+                          habitEndDate: habit.endDate,
+                        ),
+                      ),
               ),
             ],
           ),
@@ -421,6 +507,18 @@ class _DashboardPageState extends State<DashboardPage> {
         child: GlassWrapper(
           enabled: true,
           child: cardWidget,
+        ),
+      );
+    } else if (isFunky) {
+      cardWidget = Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8.0),
+        child: Funky3DCardFlip(
+          isCompleted: isDoneToday,
+          child: Funky3DWrapper(
+            isDark: isDarkFunky,
+            color: activeColor,
+            child: cardWidget,
+          ),
         ),
       );
     }
@@ -593,6 +691,204 @@ class _LiveClockWidgetState extends State<LiveClockWidget> {
           ],
         ),
       ),
+    );
+  }
+}
+
+class FloatingXPText {
+  final Key key;
+  final Offset position;
+  final String text;
+  FloatingXPText({required this.key, required this.position, required this.text});
+}
+
+class FloatingXPEffect extends StatefulWidget {
+  final Offset startPosition;
+  final String text;
+
+  const FloatingXPEffect({
+    super.key,
+    required this.startPosition,
+    required this.text,
+  });
+
+  @override
+  State<FloatingXPEffect> createState() => _FloatingXPEffectState();
+}
+
+class _FloatingXPEffectState extends State<FloatingXPEffect> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _translateY;
+  late Animation<double> _opacity;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 1000),
+    );
+    _translateY = Tween<double>(begin: 0.0, end: -80.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+    _opacity = TweenSequence([
+      TweenSequenceItem(tween: Tween<double>(begin: 0.0, end: 1.0), weight: 15),
+      TweenSequenceItem(tween: Tween<double>(begin: 1.0, end: 1.0), weight: 55),
+      TweenSequenceItem(tween: Tween<double>(begin: 1.0, end: 0.0), weight: 30),
+    ]).animate(_controller);
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Positioned(
+      left: widget.startPosition.dx - 40,
+      top: widget.startPosition.dy - 30,
+      child: AnimatedBuilder(
+        animation: _controller,
+        builder: (context, child) {
+          return Transform.translate(
+            offset: Offset(0, _translateY.value),
+            child: Opacity(
+              opacity: _opacity.value,
+              child: Text(
+                widget.text,
+                style: const TextStyle(
+                  color: Color(0xFF00FF00),
+                  fontFamily: 'monospace',
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                  shadows: [
+                    Shadow(color: Colors.black, blurRadius: 4, offset: Offset(2, 2)),
+                  ],
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+}
+
+class Funky3DWrapper extends StatelessWidget {
+  final Widget child;
+  final Color color;
+  final bool isDark;
+
+  const Funky3DWrapper({
+    super.key,
+    required this.child,
+    required this.color,
+    required this.isDark,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final borderSideColor = isDark ? Colors.white : Colors.black;
+    final shadowColor = color.withOpacity(0.35);
+
+    return Container(
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderSideColor, width: 2.5),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black : shadowColor,
+            offset: const Offset(4, 4),
+            blurRadius: 0,
+          ),
+        ],
+      ),
+      child: child,
+    );
+  }
+}
+
+class Funky3DCardFlip extends StatefulWidget {
+  final Widget child;
+  final bool isCompleted;
+
+  const Funky3DCardFlip({
+    super.key,
+    required this.child,
+    required this.isCompleted,
+  });
+
+  @override
+  State<Funky3DCardFlip> createState() => _Funky3DCardFlipState();
+}
+
+class _Funky3DCardFlipState extends State<Funky3DCardFlip> with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _animation = Tween<double>(begin: 0.0, end: pi).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+
+    if (widget.isCompleted) {
+      _controller.value = 1.0;
+    }
+  }
+
+  @override
+  void didUpdateWidget(covariant Funky3DCardFlip oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (widget.isCompleted != oldWidget.isCompleted) {
+      if (widget.isCompleted) {
+        _controller.forward();
+      } else {
+        _controller.reverse();
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _animation,
+      builder: (context, child) {
+        final angle = _animation.value;
+        final transform = Matrix4.identity()
+          ..setEntry(3, 2, 0.001) // perspective
+          ..rotateY(angle);
+
+        return Transform(
+          transform: transform,
+          alignment: Alignment.center,
+          transformHitTests: false,
+          child: angle >= pi / 2
+              ? Transform(
+                  transform: Matrix4.identity()..rotateY(pi),
+                  alignment: Alignment.center,
+                  transformHitTests: false,
+                  child: child,
+                )
+              : child,
+        );
+      },
+      child: widget.child,
     );
   }
 }

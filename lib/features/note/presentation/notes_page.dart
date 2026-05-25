@@ -61,7 +61,7 @@ class _NotesPageState extends State<NotesPage> with SingleTickerProviderStateMix
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 2, vsync: this, initialIndex: 1);
   }
 
   @override
@@ -78,7 +78,7 @@ class _NotesPageState extends State<NotesPage> with SingleTickerProviderStateMix
       _selectedNoteId = note.id;
       _headingController.text = note.heading;
       _bodyController.text = note.body;
-      _tabController.index = 0; // Reset to Edit tab when switching notes
+      _tabController.index = 1; // Default to Preview tab when switching notes
     });
   }
 

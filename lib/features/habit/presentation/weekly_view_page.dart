@@ -129,11 +129,7 @@ class WeeklyViewPage extends StatelessWidget {
                                   flex: 3,
                                   child: Row(
                                     children: [
-                                      Icon(
-                                        getHabitIcon(habit.iconCodePoint),
-                                        color: activeColor,
-                                        size: 20,
-                                      ),
+                                      buildHabitIconWidget(habit.iconCodePoint, color: activeColor, size: 20),
                                       const SizedBox(width: 12),
                                       Expanded(
                                         child: Text(
@@ -171,24 +167,41 @@ class WeeklyViewPage extends StatelessWidget {
                                       day.day == todayMidnight.day;
                                   final shouldPulse = isToday && !isCompleted && !isOutOfRange;
 
+                                  final isFunky = provider.themeMode == 8 || provider.themeMode == 9;
+                                  final isDarkFunky = provider.themeMode == 9;
                                   Widget cellWidget = AnimatedContainer(
                                     duration: const Duration(milliseconds: 200),
                                     width: 32,
                                     height: 32,
                                     decoration: BoxDecoration(
                                       color: cellColor,
-                                      shape: BoxShape.circle,
+                                      shape: BoxShape.rectangle,
+                                      borderRadius: isFunky ? BorderRadius.circular(6) : BorderRadius.circular(16),
                                       border: isFuture || isOutOfRange
                                           ? Border.all(
                                               color: theme.colorScheme.onSurface.withOpacity(0.1),
                                               width: 1,
                                               style: BorderStyle.solid,
                                             )
+                                          : (isFunky
+                                              ? Border.all(
+                                                  color: isDarkFunky ? Colors.white : Colors.black,
+                                                  width: 2,
+                                                )
+                                              : null),
+                                      boxShadow: isFunky && !isFuture && !isOutOfRange
+                                          ? [
+                                              BoxShadow(
+                                                color: isDarkFunky ? Colors.black : Colors.black.withOpacity(0.25),
+                                                offset: const Offset(2, 2),
+                                                blurRadius: 0,
+                                              ),
+                                            ]
                                           : null,
                                     ),
                                     alignment: Alignment.center,
                                     child: isCompleted
-                                        ? const Icon(Icons.check, color: Colors.white, size: 16)
+                                        ? Icon(Icons.check, color: isDarkFunky ? Colors.black : Colors.white, size: 16)
                                         : (isFuture || isOutOfRange
                                             ? Icon(
                                                 Icons.block,
@@ -201,7 +214,8 @@ class WeeklyViewPage extends StatelessWidget {
                                   if (shouldPulse) {
                                     cellWidget = PulsingCellBorder(
                                       color: activeColor,
-                                      shape: BoxShape.circle,
+                                      shape: BoxShape.rectangle,
+                                      borderRadius: isFunky ? BorderRadius.circular(6) : BorderRadius.circular(16),
                                       child: cellWidget,
                                     );
                                   }
@@ -212,7 +226,7 @@ class WeeklyViewPage extends StatelessWidget {
                                         onTap: canToggle
                                             ? () => provider.toggleCompletion(habit.id, day)
                                             : null,
-                                        borderRadius: BorderRadius.circular(100),
+                                        borderRadius: isFunky ? BorderRadius.circular(6) : BorderRadius.circular(100),
                                         child: cellWidget,
                                       ),
                                     ),

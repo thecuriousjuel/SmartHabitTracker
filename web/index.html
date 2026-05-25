@@ -18,29 +18,219 @@
 
   <meta charset="UTF-8">
   <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+  <meta name="description" content="Smart Habit Tracker - Build better habits every day.">
 
   <!-- iOS meta tags & icons -->
   <meta name="mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="smart_habit_tracker">
+  <meta name="apple-mobile-web-app-title" content="Smart Habit Tracker">
   <link rel="apple-touch-icon" href="icons/Icon-192.png">
 
   <!-- Favicon -->
   <link rel="icon" type="image/png" href="favicon.png"/>
 
-  <title>smart_habit_tracker</title>
+  <title>Smart Habit Tracker</title>
   <link rel="manifest" href="manifest.json">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      background: #0D0B14;
+      overflow: hidden;
+    }
+
+    /* ── Top progress bar ── */
+    #progress-bar-container {
+      position: fixed;
+      top: 0; left: 0; right: 0;
+      height: 4px;
+      background: rgba(255,255,255,0.06);
+      z-index: 9999;
+    }
+    #progress-bar {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #7F00FF, #00E5FF, #FF007F);
+      background-size: 200% 100%;
+      border-radius: 0 2px 2px 0;
+      transition: width 0.3s ease;
+      animation: shimmer 2s infinite linear;
+    }
+    @keyframes shimmer {
+      0%   { background-position: 0% 0%; }
+      100% { background-position: 200% 0%; }
+    }
+
+    /* ── Splash container ── */
+    #splash {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 0;
+      z-index: 9998;
+      transition: opacity 0.6s ease, transform 0.6s ease;
+    }
+    #splash.hidden {
+      opacity: 0;
+      transform: scale(1.03);
+      pointer-events: none;
+    }
+
+    /* ── Logo stack ── */
+    .logo-wrapper {
+      position: relative;
+      width: 148px;
+      height: 148px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    /* Outer glow pulse ring */
+    .glow-ring {
+      position: absolute;
+      inset: -8px;
+      border-radius: 50%;
+      background: transparent;
+      box-shadow:
+        0 0 24px 8px rgba(127, 0, 255, 0.45),
+        0 0 48px 16px rgba(0, 229, 255, 0.25),
+        0 0 72px 24px rgba(255, 0, 127, 0.15);
+      animation: pulse-glow 2s ease-in-out infinite alternate;
+    }
+    @keyframes pulse-glow {
+      from { opacity: 0.6; }
+      to   { opacity: 1.0; }
+    }
+
+    /* Spinning conic-gradient spiral */
+    .spinner-ring {
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      background: conic-gradient(
+        from 0deg,
+        #7F00FF 0%,
+        #00E5FF 35%,
+        #FF007F 65%,
+        transparent 75%,
+        #7F00FF 100%
+      );
+      animation: spin-ring 2s linear infinite;
+    }
+    @keyframes spin-ring {
+      to { transform: rotate(360deg); }
+    }
+
+    /* Mask to make the ring look like a border */
+    .spinner-mask {
+      position: absolute;
+      inset: 8px;
+      border-radius: 50%;
+      background: #0D0B14;
+    }
+
+    /* Logo image circle */
+    .logo-circle {
+      position: relative;
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      overflow: hidden;
+      background: #1A1530;
+      border: 1.5px solid rgba(255,255,255,0.12);
+      z-index: 2;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .logo-circle img {
+      width: 84px;
+      height: 84px;
+      object-fit: contain;
+      border-radius: 16px;
+    }
+
+    /* ── Text area ── */
+    .splash-title {
+      margin-top: 28px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 22px;
+      font-weight: 700;
+      color: #FFFFFF;
+      letter-spacing: 1.2px;
+      text-shadow: 0 0 20px rgba(127, 0, 255, 0.5);
+    }
+    .splash-subtitle {
+      margin-top: 6px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      font-size: 13px;
+      color: rgba(255,255,255,0.45);
+      letter-spacing: 0.4px;
+    }
+  </style>
 </head>
 <body>
-  <!--
-    You can customize the "flutter_bootstrap.js" script.
-    This is useful to provide a custom configuration to the Flutter loader
-    or to give the user feedback during the initialization process.
 
-    For more details:
-    * https://docs.flutter.dev/platform-integration/web/initialization
-  -->
+  <!-- Top loading progress bar -->
+  <div id="progress-bar-container">
+    <div id="progress-bar"></div>
+  </div>
+
+  <!-- Splash screen -->
+  <div id="splash">
+    <div class="logo-wrapper">
+      <div class="glow-ring"></div>
+      <div class="spinner-ring"></div>
+      <div class="spinner-mask"></div>
+      <div class="logo-circle">
+        <img src="favicon.png" alt="Smart Habit Tracker Logo">
+      </div>
+    </div>
+    <div class="splash-title">Smart Habit Tracker</div>
+    <div class="splash-subtitle">Loading your habits&hellip;</div>
+  </div>
+
+  <script>
+    // Drive the progress bar using the Flutter bootstrap loading progress
+    window.addEventListener('flutter-first-frame', function () {
+      const splash = document.getElementById('splash');
+      const bar = document.getElementById('progress-bar');
+      const barContainer = document.getElementById('progress-bar-container');
+      // Complete the bar then fade out
+      bar.style.width = '100%';
+      setTimeout(function () {
+        splash.classList.add('hidden');
+        setTimeout(function () {
+          splash.remove();
+          barContainer.remove();
+        }, 650);
+      }, 200);
+    });
+
+    // Animate progress bar during download via flutter_bootstrap.js hooks
+    var _progress = 0;
+    function setProgress(p) {
+      _progress = Math.max(_progress, Math.min(p, 95));
+      document.getElementById('progress-bar').style.width = _progress + '%';
+    }
+
+    // Slowly increment bar to show activity even without real progress events
+    var _interval = setInterval(function () {
+      if (_progress < 85) {
+        setProgress(_progress + (85 - _progress) * 0.04);
+      }
+    }, 300);
+
+    window.addEventListener('flutter-first-frame', function () {
+      clearInterval(_interval);
+    });
+  </script>
+
   <script src="flutter_bootstrap.js" async></script>
 </body>
 </html>

@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import '../habit/presentation/dashboard_page.dart';
 import '../habit/presentation/weekly_view_page.dart';
 import '../habit/presentation/monthly_view_page.dart';
+import '../habit/presentation/yearly_view_page.dart';
 import '../habit/provider/habits_provider.dart';
 import '../note/presentation/notes_page.dart';
 
@@ -15,13 +16,79 @@ class NavigationShell extends StatefulWidget {
 
 class _NavigationShellState extends State<NavigationShell> {
   int _selectedIndex = 0;
+  int _logoClickCount = 0;
 
   final List<Widget> _pages = [
     const DashboardPage(),
     const WeeklyViewPage(),
     const MonthlyViewPage(),
+    const YearlyViewPage(),
     const NotesPage(),
   ];
+
+  void _showFunkyCheatDialog(BuildContext context) {
+    final theme = Theme.of(context);
+    final provider = Provider.of<HabitsNotifier>(context, listen: false);
+    final isDark = provider.themeMode == 9;
+    final primaryColor = isDark ? const Color(0xFFFF00FF) : const Color(0xFFFF007F);
+    final borderColor = isDark ? Colors.white : Colors.black;
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? const Color(0xFF130E26) : Colors.white,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+          side: BorderSide(color: borderColor, width: 2.5),
+        ),
+        title: Text(
+          '=== FUNKY CHEAT ACTIVATED ===',
+          style: TextStyle(
+            color: primaryColor,
+            fontWeight: FontWeight.w900,
+            fontSize: 18,
+          ),
+          textAlign: TextAlign.center,
+        ),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text(
+              '🕺 🦄 🦖 ⚡ 🌈',
+              style: TextStyle(fontSize: 28),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'CONGRATULATIONS!\n\n'
+              'You found the hidden developer terminal. 3D Funky theme is now running at maximum coolness!',
+              style: TextStyle(
+                color: theme.colorScheme.onSurface,
+                fontWeight: FontWeight.bold,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+        actions: [
+          OutlinedButton(
+            style: OutlinedButton.styleFrom(
+              side: BorderSide(color: borderColor, width: 2),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(8)),
+            ),
+            onPressed: () => Navigator.of(ctx).pop(),
+            child: Text(
+              'COOL!',
+              style: TextStyle(
+                color: primaryColor,
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
   void _showBackupInfo(BuildContext context) {
     showDialog(
@@ -95,43 +162,68 @@ class _NavigationShellState extends State<NavigationShell> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 // App Header Logo
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
-                  child: Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(8),
-                        decoration: BoxDecoration(
-                          color: theme.colorScheme.primary.withOpacity(0.15),
+                GestureDetector(
+                  onTap: () {
+                    final provider = Provider.of<HabitsNotifier>(context, listen: false);
+                    if (provider.themeMode == 8 || provider.themeMode == 9) {
+                      setState(() {
+                        _logoClickCount++;
+                      });
+                      if (_logoClickCount >= 5) {
+                        _logoClickCount = 0;
+                        _showFunkyCheatDialog(context);
+                      }
+                    }
+                  },
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 32.0),
+                    child: Row(
+                      children: [
+                        ClipRRect(
                           borderRadius: BorderRadius.circular(12),
+                          child: Image.asset(
+                            'assets/logo.png',
+                            width: 44,
+                            height: 44,
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) {
+                              return Container(
+                                padding: const EdgeInsets.all(8),
+                                decoration: BoxDecoration(
+                                  color: theme.colorScheme.primary.withOpacity(0.15),
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Icon(
+                                  Icons.grid_on_rounded,
+                                  color: theme.colorScheme.primary,
+                                  size: 28,
+                                ),
+                              );
+                            },
+                          ),
                         ),
-                        child: Icon(
-                          Icons.grid_on_rounded,
-                          color: theme.colorScheme.primary,
-                          size: 28,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'SmartHabit',
-                              style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
+                        const SizedBox(width: 16),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                'SmartHabit',
+                                style: theme.textTheme.titleMedium?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
                               ),
-                            ),
-                            Text(
-                              'Track with ease',
-                              style: theme.textTheme.bodySmall?.copyWith(
-                                color: theme.colorScheme.onSurfaceVariant,
+                              Text(
+                                'Track with ease',
+                                style: theme.textTheme.bodySmall?.copyWith(
+                                  color: theme.colorScheme.onSurfaceVariant,
+                                ),
                               ),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
                 // Navigation Options
@@ -154,10 +246,16 @@ class _NavigationShellState extends State<NavigationShell> {
                   index: 2,
                 ),
                 _buildSidebarItem(
+                  icon: Icons.calendar_today_outlined,
+                  activeIcon: Icons.calendar_today,
+                  title: 'Yearly View',
+                  index: 3,
+                ),
+                _buildSidebarItem(
                   icon: Icons.note_alt_outlined,
                   activeIcon: Icons.note_alt,
                   title: 'Notes & Workspace',
-                  index: 3,
+                  index: 4,
                 ),
                 const Spacer(),
                 // Backup / Export Info
@@ -173,6 +271,8 @@ class _NavigationShellState extends State<NavigationShell> {
                     ),
                   ),
                 ),
+                if (provider.themeMode == 8 || provider.themeMode == 9)
+                  const Funky3DSpriteWidget(),
                 // Theme Mode Selector
                 Padding(
                   padding: const EdgeInsets.all(24.0),
@@ -211,12 +311,6 @@ class _NavigationShellState extends State<NavigationShell> {
                                 border: true,
                                 splitColors: const [Colors.white, Color(0xFF1976D2)],
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
                               _buildThemeDot(
                                 3,
                                 Colors.teal[500]!,
@@ -224,6 +318,12 @@ class _NavigationShellState extends State<NavigationShell> {
                                 border: true,
                                 splitColors: const [Colors.white, Color(0xFF00796B)],
                               ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
                               _buildThemeDot(
                                 4,
                                 const Color(0xFF08070A),
@@ -237,12 +337,12 @@ class _NavigationShellState extends State<NavigationShell> {
                                 border: true,
                                 splitColors: const [Color(0xFFFCFCFD), Color(0xFFE0007A)],
                               ),
-                            ],
-                          ),
-                          const SizedBox(height: 12),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
+                              _buildThemeDot(
+                                6,
+                                Colors.blueGrey,
+                                'Dark Glassmorphism',
+                                splitColors: const [Color(0xFF7F00FF), Color(0xFF00E5FF)],
+                              ),
                               _buildThemeDot(
                                 7,
                                 Colors.white,
@@ -250,13 +350,25 @@ class _NavigationShellState extends State<NavigationShell> {
                                 border: true,
                                 splitColors: const [Color(0xFFF9F7FC), Color(0xFFFFB6C1)],
                               ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
                               _buildThemeDot(
-                                6,
-                                Colors.blueGrey,
-                                'Dark Glassmorphism',
-                                splitColors: const [Color(0xFF7F00FF), Color(0xFF00E5FF)],
+                                8,
+                                const Color(0xFFFF007F),
+                                'Funky 3D Light',
+                                splitColors: const [Color(0xFFFF007F), Color(0xFF00C8FF)],
                               ),
-                              const SizedBox(width: 32),
+                              const SizedBox(width: 24),
+                              _buildThemeDot(
+                                9,
+                                const Color(0xFFFF00FF),
+                                'Funky 3D Dark',
+                                splitColors: const [Color(0xFFFF00FF), Color(0xFF00FFCC)],
+                              ),
                             ],
                           ),
                         ],
@@ -374,6 +486,8 @@ class _NavigationShellState extends State<NavigationShell> {
   }) {
     final provider = Provider.of<HabitsNotifier>(context, listen: false);
     final isSelected = provider.themeMode == index;
+    final isFunkyActive = provider.themeMode == 8 || provider.themeMode == 9;
+    final borderSideColor = provider.themeMode == 9 ? Colors.white : Colors.black;
 
     return Tooltip(
       message: tooltip,
@@ -393,19 +507,31 @@ class _NavigationShellState extends State<NavigationShell> {
                     end: Alignment.centerRight,
                   )
                 : null,
-            shape: BoxShape.circle,
+            shape: BoxShape.rectangle,
+            borderRadius: isFunkyActive ? BorderRadius.circular(8) : BorderRadius.circular(16),
             border: Border.all(
               color: isSelected
                   ? Theme.of(context).colorScheme.primary
-                  : (border ? Colors.grey[400]! : Colors.transparent),
+                  : (isFunkyActive
+                      ? borderSideColor.withOpacity(0.4)
+                      : (border ? Colors.grey[400]! : Colors.transparent)),
               width: isSelected ? 3.0 : 1.0,
             ),
+            boxShadow: isFunkyActive
+                ? [
+                    BoxShadow(
+                      color: provider.themeMode == 9 ? Colors.black : Colors.black.withOpacity(0.2),
+                      offset: const Offset(2, 2),
+                      blurRadius: 0,
+                    ),
+                  ]
+                : null,
           ),
           child: isSelected
               ? Icon(
                   Icons.check,
                   size: 16,
-                  color: (index == 2 || index == 5 || index == 7) ? Colors.black : Colors.white,
+                  color: (index == 2 || index == 5 || index == 7 || index == 8) ? Colors.black : Colors.white,
                 )
               : null,
         ),
@@ -582,6 +708,126 @@ class _LightGlassBackground extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+
+class Funky3DSpriteWidget extends StatefulWidget {
+  const Funky3DSpriteWidget({super.key});
+
+  @override
+  State<Funky3DSpriteWidget> createState() => _Funky3DSpriteWidgetState();
+}
+
+class _Funky3DSpriteWidgetState extends State<Funky3DSpriteWidget> {
+  int _quoteIndex = 0;
+  int _spriteIndex = 0;
+
+  final List<String> _sprites = ['🕺', '🦄', '🦖', '😎', '🛸', '🍕', '🍩'];
+
+  final List<String> _quotes = [
+    "Unleash the magic! Track those habits!",
+    "Stay cool, keep tracking!",
+    "Funky mode activated! You're crushing it!",
+    "A habit a day keeps the chaos away!",
+    "Progress is funky! Keep moving!",
+    "Streak active! Level Up your life!",
+    "Feed your inner dino, hit your goals!",
+    "Confetti awaits you at the finish line!",
+    "Rock on! You're doing amazing today!",
+  ];
+
+  void _clickSprite() {
+    setState(() {
+      _quoteIndex = (_quoteIndex + 1) % _quotes.length;
+      _spriteIndex = (_spriteIndex + 1) % _sprites.length;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final provider = Provider.of<HabitsNotifier>(context);
+    final isDark = provider.themeMode == 9;
+    final borderColor = isDark ? Colors.white : Colors.black;
+    final primaryColor = isDark ? const Color(0xFFFF00FF) : const Color(0xFFFF007F);
+
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
+      padding: const EdgeInsets.all(12.0),
+      decoration: BoxDecoration(
+        color: isDark ? const Color(0xFF1E1735) : Colors.white,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: borderColor, width: 2.5),
+        boxShadow: [
+          BoxShadow(
+            color: isDark ? Colors.black : Colors.black.withOpacity(0.2),
+            offset: const Offset(4, 4),
+            blurRadius: 0,
+          ),
+        ],
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Row(
+            children: [
+              GestureDetector(
+                onTap: _clickSprite,
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  padding: const EdgeInsets.all(6),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF130E26) : const Color(0xFFF3F0FF),
+                    borderRadius: BorderRadius.circular(12),
+                    border: Border.all(color: borderColor, width: 2.0),
+                    boxShadow: [
+                      BoxShadow(
+                        color: isDark ? Colors.black : Colors.black.withOpacity(0.15),
+                        offset: const Offset(2, 2),
+                        blurRadius: 0,
+                      )
+                    ],
+                  ),
+                  child: Text(
+                    _sprites[_spriteIndex],
+                    style: const TextStyle(fontSize: 24),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'TAP ME!',
+                  style: TextStyle(
+                    fontWeight: FontWeight.w900,
+                    fontSize: 12,
+                    color: primaryColor,
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 8),
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF0C071A) : const Color(0xFFFAF9F6),
+              borderRadius: BorderRadius.circular(8),
+              border: Border.all(color: borderColor.withOpacity(0.2), width: 1),
+            ),
+            child: Text(
+              _quotes[_quoteIndex],
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                color: isDark ? Colors.white : Colors.black87,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

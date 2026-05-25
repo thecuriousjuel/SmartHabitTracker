@@ -32,3 +32,29 @@ IconData getHabitIcon(int codePoint) {
   }
   return Icons.star; // Fallback icon
 }
+
+bool isEmojiCodePoint(int codePoint) {
+  // If it falls back to star and it's not actually the star icon code point, it is an emoji!
+  return getHabitIcon(codePoint) == Icons.star && codePoint != Icons.star.codePoint;
+}
+
+Widget buildHabitIconWidget(int codePoint, {required Color color, double size = 20}) {
+  if (isEmojiCodePoint(codePoint)) {
+    return Center(
+      child: Text(
+        String.fromCharCode(codePoint),
+        style: TextStyle(
+          fontSize: size * 0.85,
+          height: 1.0,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  } else {
+    return Icon(
+      getHabitIcon(codePoint),
+      color: color,
+      size: size,
+    );
+  }
+}

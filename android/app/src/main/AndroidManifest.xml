@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="smart_habit_tracker"
+        android:label="Smart Habit Tracker"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity
