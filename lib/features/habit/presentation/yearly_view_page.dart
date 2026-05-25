@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../provider/habits_provider.dart';
 import '../models/habit.dart';
 import 'ambient_glow_wrapper.dart';
@@ -15,6 +16,28 @@ class YearlyViewPage extends StatefulWidget {
 
 class _YearlyViewPageState extends State<YearlyViewPage> {
   int? _selectedHabitId;
+  bool _isLinearView = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadViewPreference();
+  }
+
+  Future<void> _loadViewPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isLinearView = prefs.getBool('yearly_view_linear') ?? false;
+    });
+  }
+
+  Future<void> _toggleViewMode() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isLinearView = !_isLinearView;
+    });
+    await prefs.setBool('yearly_view_linear', _isLinearView);
+  }
 
   static const List<String> _monthNames = [
     'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun',
@@ -279,6 +302,9 @@ class _YearlyViewPageState extends State<YearlyViewPage> {
                   ],
                 ),
               ),
+              // Switch View toggle
+              _buildSwitchViewToggle(theme, isFunky, isDarkFunky),
+              const SizedBox(width: 12),
               // Streak badge
               _buildStreakBadge(completedDates, activeColor, theme, isFunky, isDarkFunky),
             ],
@@ -301,6 +327,7 @@ class _YearlyViewPageState extends State<YearlyViewPage> {
             isFunky: isFunky,
             isDarkFunky: isDarkFunky,
             isCurrent: true,
+            isLinearView: _isLinearView,
           ),
 
           const SizedBox(height: 24),
@@ -320,6 +347,7 @@ class _YearlyViewPageState extends State<YearlyViewPage> {
             isFunky: isFunky,
             isDarkFunky: isDarkFunky,
             isCurrent: false,
+            isLinearView: _isLinearView,
           ),
         ],
       ),
@@ -381,6 +409,65 @@ class _YearlyViewPageState extends State<YearlyViewPage> {
     );
   }
 
+  Widget _buildSwitchViewToggle(ThemeData theme, bool isFunky, bool isDarkFunky) {
+    final text = _isLinearView ? 'Consecutive' : 'Calendar';
+    
+    if (isFunky) {
+      final borderColor = isDarkFunky ? Colors.white : Colors.black;
+      final shadowColor = isDarkFunky ? Colors.black : Colors.black.withOpacity(0.2);
+      final activeColor = isDarkFunky ? const Color(0xFFFF00FF) : const Color(0xFFFF007F);
+      return InkWell(
+        onTap: _toggleViewMode,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+          decoration: BoxDecoration(
+            color: activeColor.withOpacity(0.12),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(color: borderColor, width: 2),
+            boxShadow: [
+              BoxShadow(
+                color: shadowColor,
+                offset: const Offset(3, 3),
+                blurRadius: 0,
+              )
+            ],
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.swap_horiz_rounded, size: 16, color: activeColor),
+              const SizedBox(width: 6),
+              Text(
+                'Switch View: $text',
+                style: TextStyle(
+                  fontWeight: FontWeight.w900,
+                  fontSize: 12,
+                  color: activeColor,
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    // Default & Glass styles
+    return OutlinedButton.icon(
+      onPressed: _toggleViewMode,
+      icon: const Icon(Icons.swap_horiz_rounded, size: 16),
+      label: Text(
+        'Switch View: $text',
+        style: const TextStyle(fontSize: 12),
+      ),
+      style: OutlinedButton.styleFrom(
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+        ),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      ),
+    );
+  }
+
   Widget _buildYearCard(
     BuildContext context,
     HabitsNotifier provider,
@@ -395,6 +482,7 @@ class _YearlyViewPageState extends State<YearlyViewPage> {
     required bool isFunky,
     required bool isDarkFunky,
     required bool isCurrent,
+    required bool isLinearView,
   }) {
     final int themeMode = provider.themeMode;
     final Color inactiveColor;
@@ -538,6 +626,7 @@ class _YearlyViewPageState extends State<YearlyViewPage> {
           outOfBoundsColor: outOfBoundsColor,
           isFunky: isFunky,
           isDarkFunky: isDarkFunky,
+          isLinearView: isLinearView,
         ),
 
         const SizedBox(height: 16),
@@ -603,6 +692,7 @@ class _YearlyViewPageState extends State<YearlyViewPage> {
     required Color outOfBoundsColor,
     required bool isFunky,
     required bool isDarkFunky,
+    required bool isLinearView,
   }) {
     final now = DateTime.now();
     final today = DateTime(now.year, now.month, now.day);
@@ -622,8 +712,8 @@ class _YearlyViewPageState extends State<YearlyViewPage> {
       children: List.generate(12, (monthIdx) {
         final month = monthIdx + 1;
         final days = _daysInMonth(year, month);
-        // The day-of-week of the 1st (Sun=0…Sat=6)
-        final firstWeekday = DateTime(year, month, 1).weekday % 7;
+        // The day-of-week of the 1st (Sun=0…Sat=6) or 0 if in linear view mode
+        final firstWeekday = isLinearView ? 0 : (DateTime(year, month, 1).weekday % 7);
 
         return Padding(
           padding: const EdgeInsets.only(bottom: 12),
@@ -654,7 +744,8 @@ class _YearlyViewPageState extends State<YearlyViewPage> {
                   runSpacing: cellGap,
                   children: [
                     // Leading blank cells to align weekday
-                    ...List.generate(firstWeekday, (_) => SizedBox(width: cellW, height: cellH)),
+                    if (firstWeekday > 0)
+                      ...List.generate(firstWeekday, (_) => SizedBox(width: cellW, height: cellH)),
 
                     ...List.generate(days, (dayIdx) {
                       final day = DateTime(year, month, dayIdx + 1);
