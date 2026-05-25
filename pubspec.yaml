@@ -1,0 +1,41 @@
+name: smart_habit_tracker
+description: "A new Flutter project."
+publish_to: 'none'
+version: 0.1.0+1
+
+environment:
+  sdk: ^3.12.0
+
+dependencies:
+  flutter:
+    sdk: flutter
+  drift: ^2.14.0
+  sqlite3_flutter_libs: ^0.6.0+eol
+  path_provider: ^2.1.1
+  path: ^1.8.3
+  provider: ^6.1.1
+  shared_preferences: ^2.2.2
+  flutter_colorpicker: ^1.0.3
+  file_picker: ^8.0.0
+  google_fonts: ^6.2.1
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+  drift_dev: ^2.14.0
+  build_runner: ^2.4.8
+  msix: ^3.16.13
+
+flutter:
+  uses-material-design: true
+  assets:
+    - assets/logo.png
+
+msix_config:
+  display_name: Smart Habit Tracker
+  publisher_display_name: TheCuriousJuel
+  identity_name: TheCuriousJuel.SmartHabitTracker
+  logo_path: assets/logo.png
+  capabilities: "internetClient, location"
+  install_certificate: false
